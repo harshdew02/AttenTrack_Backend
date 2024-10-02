@@ -24,27 +24,8 @@ wss.on('connection', (ws) => {
   // console.log('Client connected');
 
   ws.on('message', (message) => {
-    const data = JSON.parse(message);
+    
 
-    if (data.type === 'otp_verification') {
-      if (data.otp === currentOTP) {
-        // If OTP matches, send success message to the student and broadcast to teacher
-        ws.send(JSON.stringify({ type: 'verification_result', status: 'success' }));
-
-        // Broadcast attendance update to all clients (including teacher)
-        const rollNumber = '21116008';  // Example roll number
-        wss.clients.forEach(client => {
-          if (client.readyState === WebSocket.OPEN) {
-            client.send(JSON.stringify({ type: 'attendance_update', rollNumber }));
-          }
-        });
-
-        console.log('OTP verified successfully, roll number 21116008 marked as present.');
-      } else {
-        ws.send(JSON.stringify({ type: 'verification_result', status: 'failure' }));
-        console.log('OTP verification failed.');
-      }
-    }
   });
 
   ws.on('close', () => {
@@ -58,15 +39,15 @@ app.post('/setAttendance', (req, res) => {
   const { otp, time } = req.body;
   currentOTP = otp;
   finalTime = time;
-  console.log('currentOTP POST ', currentOTP);
-  console.log('finalTime POST ', finalTime);
+  // console.log('currentOTP POST ', currentOTP);
+  // console.log('finalTime POST ', finalTime);
   res.send('OTP and Final Time set');
 });
 
 // Endpoint for Student to get OTP and time
 app.get('/getAttendance', (req, res) => {
-  console.log('currentOTP GET ', currentOTP);
-  console.log('finalTime GET ', finalTime);
+  // console.log('currentOTP GET ', currentOTP);
+  // console.log('finalTime GET ', finalTime);
   res.json({currentOTP, finalTime});
 });
 
