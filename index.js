@@ -19,27 +19,6 @@ app.use(express.json());
 let currentOTP = null;
 let progressData = { time: 0, progress: 0 };
 
-app.get('/', (req, res) => {
-  res.send('Server is running...')
-});
-
-// SSE route for sending progress updates to students
-app.get('/progress', (req, res) => {
-  res.setHeader('Content-Type', 'text/event-stream');
-  res.setHeader('Cache-Control', 'no-cache');
-  res.setHeader('Connection', 'keep-alive');
-  
-  // Send progress data every second
-  const interval = setInterval(() => {
-    res.write(`data: ${JSON.stringify(progressData)}\n\n`);
-  }, 1000);
-  
-  // Clean up on client disconnect
-  req.on('close', () => {
-    clearInterval(interval);
-  });
-});
-
 // WebSocket for OTP communication
 wss.on('connection', (ws) => {
   console.log('Client connected');
@@ -77,19 +56,18 @@ wss.on('connection', (ws) => {
 // Endpoint for teacher to set OTP and time
 app.post('/setAttendance', (req, res) => {
   const { otp, time } = req.body;
-  console.log('otp',otp,' time',time);
   currentOTP = otp;
-  progressData = { time, progress: 0 };  // Reset the progress for students
-  res.send('OTP and time set');
-  
-  // Simulate progress countdown
-  let progressInterval = setInterval(() => {
-    if (progressData.progress < 1) {
-      progressData.progress += 1 / time;
-    } else {
-      clearInterval(progressInterval);
-    }
-  }, 1000);
+  finalTime = time
+  res.send('OTP and Final Time set');
+});
+
+// Endpoint for Student to get OTP and time
+app.get('/getAttendance', (req, res) => {
+  res.send({currentOTP,finalTime});
+});
+
+app.get('/', (req, res) => {
+  res.send('Server is running...')
 });
 
 server.listen(3000,"0.0.0.0", () => {
