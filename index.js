@@ -21,7 +21,7 @@ let progressData = { time: 0, progress: 0 };
 
 // WebSocket for OTP communication
 wss.on('connection', (ws) => {
-  console.log('Client connected');
+  // console.log('Client connected');
 
   ws.on('message', (message) => {
     const data = JSON.parse(message);
@@ -48,7 +48,7 @@ wss.on('connection', (ws) => {
   });
 
   ws.on('close', () => {
-    console.log('Client disconnected');
+    // console.log('Client disconnected');
   });
 });
 
@@ -57,13 +57,13 @@ wss.on('connection', (ws) => {
 app.post('/setAttendance', (req, res) => {
   const { otp, time } = req.body;
   currentOTP = otp;
-  finalTime = time
+  finalTime = time;
   res.send('OTP and Final Time set');
 });
 
 // Endpoint for Student to get OTP and time
 app.get('/getAttendance', (req, res) => {
-  res.send({currentOTP,finalTime});
+  res.json({currentOTP, finalTime});
 });
 
 app.get('/', (req, res) => {
