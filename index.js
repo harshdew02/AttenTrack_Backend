@@ -19,17 +19,29 @@ app.use(express.json());
 let currentOTP = null;
 let finalTime = 1; 
 
-// WebSocket for OTP communication
 wss.on('connection', (ws) => {
-  // console.log('Client connected');
-
   ws.on('message', (message) => {
-    
+    const data = JSON.parse(message);
 
+    if (data.type === 'time_update') {
+      // console.log(`Time update: ${data.time}`);
+      // Broadcast to all connected clients
+      wss.clients.forEach((client) => {
+        if (client.readyState === WebSocket.OPEN) {
+          client.send(JSON.stringify({ type: 'time_update2', time: data.time }));
+        }
+      });
+    }else if(data.type === 'attendance'){
+      wss.clients.forEach((client) => {
+        if (client.readyState === WebSocket.OPEN) {
+          client.send(JSON.stringify({ type: 'attendance2', rollNumber: data.rollNumber }));
+        }
+      });
+    }
   });
 
   ws.on('close', () => {
-    // console.log('Client disconnected');
+    console.log('Client disconnected');
   });
 });
 
