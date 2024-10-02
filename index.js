@@ -17,7 +17,7 @@ app.use(cors({
 app.use(express.json());
 
 let currentOTP = null;
-let progressData = { time: 0, progress: 0 };
+let finalTime = 1; 
 
 // WebSocket for OTP communication
 wss.on('connection', (ws) => {
