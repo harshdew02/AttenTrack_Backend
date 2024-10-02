@@ -58,11 +58,15 @@ app.post('/setAttendance', (req, res) => {
   const { otp, time } = req.body;
   currentOTP = otp;
   finalTime = time;
+  console.log('currentOTP POST ', currentOTP);
+  console.log('finalTime POST ', finalTime);
   res.send('OTP and Final Time set');
 });
 
 // Endpoint for Student to get OTP and time
 app.get('/getAttendance', (req, res) => {
+  console.log('currentOTP GET ', currentOTP);
+  console.log('finalTime GET ', finalTime);
   res.json({currentOTP, finalTime});
 });
 
