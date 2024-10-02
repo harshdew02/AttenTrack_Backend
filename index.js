@@ -77,6 +77,7 @@ wss.on('connection', (ws) => {
 // Endpoint for teacher to set OTP and time
 app.post('/setAttendance', (req, res) => {
   const { otp, time } = req.body;
+  console.log('otp',otp,' time',time);
   currentOTP = otp;
   progressData = { time, progress: 0 };  // Reset the progress for students
   res.send('OTP and time set');
