@@ -2,10 +2,18 @@ const express = require('express');
 const http = require('http');
 const WebSocket = require('ws');
 const cors = require('cors');
+const dotenv = require('dotenv').config();
 
+const connectDB = require('./config/connectdb');
 const app = express();
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
+
+
+connectDB();
+
+const PORT = process.env.PORT || 3000;
+
 
 app.use(cors({
   origin: '*',
@@ -73,6 +81,11 @@ app.get('/getAttendance', (req, res) => {
 app.get('/', (req, res) => {
   res.send('Server is running...')
 });
+
+
+app.use("/api/student", require("./routes/studentRoutes"));
+app.use("/api/teacher", require("./routes/teacherRoutes"));
+
 
 server.listen(3000,"0.0.0.0", () => {
   console.log('Server started on port 3000');
