@@ -83,8 +83,8 @@ app.get('/', (req, res) => {
 });
 
 
-app.use("/api/student", require("./routes/studentRoutes"));
-app.use("/api/teacher", require("./routes/teacherRoutes"));
+// app.use("/api/student", require("./routes/student.routes.js"));
+app.use("/api/teacher", require("./routes/teacher.routes.js"));
 
 
 server.listen(3000,"0.0.0.0", () => {
