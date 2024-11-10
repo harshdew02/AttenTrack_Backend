@@ -3,6 +3,7 @@ const Student = require('./student.model');
 const Schema = mongoose.Schema;
 
 const classSchema = new Schema({
+
   classname: {
     type: String,
     required: true
@@ -34,9 +35,12 @@ const classSchema = new Schema({
       required: true,
       trim: true
     }
-  }
-  ],
-  teacher: { type: Schema.Types.ObjectId, ref: 'Teacher' },
+  }],
+  teacher: {
+    type: Schema.Types.ObjectId,
+    ref: 'Teacher'
+  },
+
 });
 
 module.exports = mongoose.model('Class', classSchema);

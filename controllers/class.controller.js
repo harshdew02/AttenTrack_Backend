@@ -4,7 +4,7 @@ const Sheet = require('../models/sheet.model.js');
 
 const CreateClass = async (req, res) => {
     try {
-
+        
         const { classname, batch, semester, department, teacherid, students } = req.body;
 
         const cls = await Class.findOne({ classname });
@@ -57,3 +57,5 @@ const CreateClass = async (req, res) => {
 module.exports = {
     CreateClass,
 }
+
+

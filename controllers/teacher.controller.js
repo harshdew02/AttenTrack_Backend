@@ -1,7 +1,8 @@
 const Teacher = require("../models/teacher.model.js");
 const Class = require('../models/class.model.js');
+const Attendance = require('../models/attendance.model.js');
 
-const  TeacherRegistration = async (req, res) => {
+const TeacherRegistration = async (req, res) => {
     // return res.send('teacher registration');
     try {
         const { email, fullName, department, password, classes } = req.body
@@ -20,7 +21,7 @@ const  TeacherRegistration = async (req, res) => {
             classes: []
         })
 
-        if(newTeacher){
+        if (newTeacher) {
             await newTeacher.save()
 
             res.status(201).json(
@@ -29,21 +30,20 @@ const  TeacherRegistration = async (req, res) => {
                     email: newTeacher.email,
                     fullName: newTeacher.fullName,
                     department: newTeacher.department,
-                    password: newTeacher.password, 
+                    password: newTeacher.password,
                     classes: newTeacher.classes
                 }
             );
-        }else{
+        } else {
             res.status(400).json({ error: "Teacher not created" });
         }
 
     } catch (err) {
-       console.log("Error in TeacherRegistration", err.message);
-       console.log(err);
-       res.status(500).send(error.message);
+        console.log("Error in TeacherRegistration", err.message);
+        console.log(err);
+        res.status(500).send(error.message);
     }
 }
-
 
 const TeacherLogin = async (req, res) => {
     try {
@@ -72,11 +72,65 @@ const TeacherLogin = async (req, res) => {
         );
 
     } catch (err) {
-       console.log("Error in TeacherLogin", err.message);
-       console.log(err);
-       res.status(500).send(error.message);
+        console.log("Error in TeacherLogin", err.message);
+        console.log(err);
+        res.status(500).send(error.message);
     }
 }
 
 
-module.exports = {TeacherRegistration, TeacherLogin};
+const getReport = async (req, res) => {
+    try {
+        const { classId, startDate, endDate } = req.body;
+
+        const getAttendanceCount = async (classId, startDate, endDate) => {
+            try {
+                const attendances = await Attendance.find({
+                    class_id: classId,
+                    date: { $gte: new Date(startDate), $lte: new Date(endDate) }
+                });
+
+                const attendanceCount = {};
+
+                let tot = 0;
+
+                attendances.forEach(attendance => {
+                    attendance.records.forEach(record => {
+                        const { rollNumber, is_present } = record;
+                        if (!attendanceCount[rollNumber]) {
+                            attendanceCount[rollNumber] = 0;
+                        }
+                        if (is_present) {
+                            attendanceCount[rollNumber] += 1;
+                        }
+                    });
+                    tot += 1;
+                });
+
+
+                return { tot, attendanceCount };
+
+            } catch (error) {
+                console.error(error);
+                throw new Error('Error calculating attendance count');
+            }
+        };
+
+        getAttendanceCount(classId, startDate, endDate)
+            .then(attendanceCount => {
+                // console.log(attendanceCount);
+                res.status(200).json(attendanceCount);
+                // finaldata.attendanceCount = attendanceCount;
+                // Output example: { "ECE2025001": 15, "ECE2025002": 12, "ECE2025003": 18 }
+            })
+            .catch(error => console.error(error));
+
+
+    } catch (err) {
+        console.log("Error in getReport", err.message);
+        console.log(err);
+        res.status(500).send(err.message);
+    }
+}
+
+module.exports = { TeacherRegistration, TeacherLogin, getReport };
