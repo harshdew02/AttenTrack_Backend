@@ -17,6 +17,10 @@ const classSchema = new Schema({
   department: {
     type: String,
     required: true
+  },
+  sheet: {
+    type: Schema.Types.ObjectId,
+    ref: 'Sheet'
   }
 });
 

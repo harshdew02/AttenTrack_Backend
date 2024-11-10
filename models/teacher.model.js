@@ -1,13 +1,16 @@
 const mongoose = require('mongoose');
+const Schema = mongoose.Schema;
 
-const teacherSchema = new mongoose.Schema({
+// Define the teacher schema
+const teacherSchema = new Schema({
     email: {
         type: String,
         required: true,
         unique: true,
+        match: [/.+@.+\..+/, 'Please enter a valid email address'],
         trim: true
     },
-    password: {
+    fullName: {
         type: String,
         required: true
     },
@@ -15,10 +18,17 @@ const teacherSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    password: {
+        type: String,
+        required: true
+    },
     classes: [{
         type: Schema.Types.ObjectId,
         ref: 'Class'
     }]
-});
+}, { timestamps: true });
 
-module.exports = mongoose.model('Teacher', teacherSchema);
+// Create the model
+const Teacher = mongoose.model('Teacher', teacherSchema);
+
+module.exports = Teacher;

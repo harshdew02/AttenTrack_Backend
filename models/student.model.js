@@ -5,7 +5,12 @@ const studentSchema = new mongoose.Schema({
     type: String,
     required: true,
     unique: true,
+    match: [/.+@.+\..+/, 'Please enter a valid email address'],
     trim: true
+  },
+  fullName: {
+    type: String,
+    required: true,
   },
   rollNumber: {
     type: String,
@@ -14,8 +19,10 @@ const studentSchema = new mongoose.Schema({
   },
   password: {
     type: String,
-    required: true
+    required: true,
   }
-});
+}, { timestamps: true });
 
-module.exports = mongoose.model('Student', studentSchema);
+const Student = mongoose.model('Student', studentSchema);
+
+module.exports = Student;

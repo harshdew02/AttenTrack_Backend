@@ -4,10 +4,12 @@ const WebSocket = require('ws');
 const cors = require('cors');
 const dotenv = require('dotenv').config();
 
-const connectDB = require('./config/connectdb');
+const connectDB = require('./config/connectdb.js');
 const app = express();
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
+
+const teacherRoutes = require('./routes/teacher.routes.js');
 
 
 connectDB();
@@ -83,8 +85,8 @@ app.get('/', (req, res) => {
 });
 
 
-// app.use("/api/student", require("./routes/student.routes.js"));
-app.use("/api/teacher", require("./routes/teacher.routes.js"));
+app.use("/api/student", require("./routes/student.routes.js"));
+app.use("/api/teacher", teacherRoutes);
 
 
 server.listen(3000,"0.0.0.0", () => {
