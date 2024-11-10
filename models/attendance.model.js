@@ -2,9 +2,9 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const attendanceSchema = new Schema({
-  sheet_id: {
+  class_id: {
     type: Schema.Types.ObjectId,
-    ref: 'Sheet',
+    ref: 'Class',
     required: true
   },
   date: {

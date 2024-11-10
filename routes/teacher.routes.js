@@ -11,6 +11,10 @@ router.post('/register', TeacherRegistration);
 
 router.post('/login', TeacherLogin);
 
+router.post('/class', (req, res) => {
+    res.send('route frome teacher');
+})
+
 router.post('/otp', (req, res) => {
     res.send('route frome teacher');
 })

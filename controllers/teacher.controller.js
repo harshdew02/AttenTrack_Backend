@@ -1,4 +1,5 @@
 const Teacher = require("../models/teacher.model.js");
+const Class = require('../models/class.model.js');
 
 const  TeacherRegistration = async (req, res) => {
     // return res.send('teacher registration');
@@ -57,6 +58,8 @@ const TeacherLogin = async (req, res) => {
             return res.status(400).json({ error: "Invalid password" })
         }
 
+        const cls = await Class.find({ _id: { $in: teacher.classes } });
+
         res.status(200).json(
             {
                 _id: teacher._id,
@@ -64,7 +67,7 @@ const TeacherLogin = async (req, res) => {
                 fullName: teacher.fullName,
                 department: teacher.department,
                 password: teacher.password,
-                classes: teacher.classes
+                classes: cls
             }
         );
 

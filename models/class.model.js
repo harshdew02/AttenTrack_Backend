@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const Student = require('./student.model');
 const Schema = mongoose.Schema;
 
 const classSchema = new Schema({
@@ -7,7 +8,7 @@ const classSchema = new Schema({
     required: true
   },
   batch: {
-    type: String,
+    type: Number,
     required: true
   },
   semester: {
@@ -18,10 +19,24 @@ const classSchema = new Schema({
     type: String,
     required: true
   },
-  sheet: {
-    type: Schema.Types.ObjectId,
-    ref: 'Sheet'
+  // sheet: {
+  //   type: Schema.Types.ObjectId,
+  //   ref: 'Sheet'
+  // },
+  students: [{
+    name: {
+      type: String,
+      required: true,
+      trim: true
+    },
+    rollNumber: {
+      type: String,
+      required: true,
+      trim: true
+    }
   }
+  ],
+  teacher: { type: Schema.Types.ObjectId, ref: 'Teacher' },
 });
 
 module.exports = mongoose.model('Class', classSchema);

@@ -1,5 +1,5 @@
 const express = require('express');
-const { StudentRegistration, StudentLogin } = require('../controllers/student.controller');
+const { StudentRegistration, StudentLogin } = require('../controllers/student.controller.js');
 const router = express.Router();
 
 router.get('/', (req, res) => {
