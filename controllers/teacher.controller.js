@@ -41,7 +41,7 @@ const TeacherRegistration = async (req, res) => {
     } catch (err) {
         console.log("Error in TeacherRegistration", err.message);
         console.log(err);
-        res.status(500).send(error.message);
+        res.status(500).send(err.message);
     }
 }
 
