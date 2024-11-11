@@ -9,13 +9,9 @@ const app = express();
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 
-const teacherRoutes = require('./routes/teacher.routes.js');
-
-
 connectDB();
 
 const PORT = process.env.PORT || 3000;
-
 
 app.use(cors({
   origin: '*',
@@ -34,8 +30,6 @@ wss.on('connection', (ws) => {
     const data = JSON.parse(message);
 
     if (data.type === 'time_update') {
-      // console.log(`Time update: ${data.time}`);
-      // Broadcast to all connected clients
       wss.clients.forEach((client) => {
         if (client.readyState === WebSocket.OPEN) {
           client.send(JSON.stringify({ type: 'time_update2', time: data.time }));
@@ -68,15 +62,11 @@ app.post('/setAttendance', (req, res) => {
   const { otp, time } = req.body;
   currentOTP = otp;
   finalTime = time;
-  // console.log('currentOTP POST ', currentOTP);
-  // console.log('finalTime POST ', finalTime);
   res.send('OTP and Final Time set');
 });
 
 // Endpoint for Student to get OTP and time
 app.get('/getAttendance', (req, res) => {
-  // console.log('currentOTP GET ', currentOTP);
-  // console.log('finalTime GET ', finalTime);
   res.json({currentOTP, finalTime});
 });
 
@@ -86,7 +76,7 @@ app.get('/', (req, res) => {
 
 
 app.use("/api/student", require("./routes/student.routes.js"));
-app.use("/api/teacher", teacherRoutes);
+app.use("/api/teacher", require("./routes/teacher.routes.js"));
 app.use("/api/class", require("./routes/class.routes.js"));
 app.use("/api/sheet", require("./routes/sheet.routes.js"));
 app.use("/api/attendance", require("./routes/attendance.routes.js"));
