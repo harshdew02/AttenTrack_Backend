@@ -58,15 +58,11 @@ app.post('/setAttendance', (req, res) => {
   const { otp, time } = req.body;
   currentOTP = otp;
   finalTime = time;
-  // console.log('currentOTP POST ', currentOTP);
-  // console.log('finalTime POST ', finalTime);
   res.send('OTP and Final Time set');
 });
 
 // Endpoint for Student to get OTP and time
 app.get('/getAttendance', (req, res) => {
-  // console.log('currentOTP GET ', currentOTP);
-  // console.log('finalTime GET ', finalTime);
   res.json({currentOTP, finalTime});
 });
 
@@ -75,5 +71,5 @@ app.get('/', (req, res) => {
 });
 
 server.listen(3000,"0.0.0.0", () => {
-  console.log('Server started on port 3000');
+  console.log(`Server started on port 3000`);
 });
