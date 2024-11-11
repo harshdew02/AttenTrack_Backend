@@ -82,6 +82,6 @@ app.use("/api/sheet", require("./routes/sheet.routes.js"));
 app.use("/api/attendance", require("./routes/attendance.routes.js"));
 
 
-server.listen(3000,"0.0.0.0", () => {
-  console.log(`Server started on port 3000`);
+server.listen(PORT,"0.0.0.0", () => {
+  console.log(`Server started on port ${PORT}`);
 });
