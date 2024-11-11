@@ -10,11 +10,12 @@ router.get('/', (req, res) => {
 
 router.post('/createClass', CreateClass);
 
-router.delete('/remove/:id', async(req, res) => {
+router.delete('/remove/:className', async (req, res) => {
     try {
-        const { id } = req.params;
+        const { className } = req.params;
 
-        const deletedClass = await Class.findByIdAndDelete(id);
+        // Find and delete the class by className
+        const deletedClass = await Class.findOneAndDelete({ classname: className });
 
         if (!deletedClass) {
             return res.status(404).json({ message: 'Class not found' });
@@ -25,7 +26,7 @@ router.delete('/remove/:id', async(req, res) => {
         console.error(error);
         res.status(500).json({ message: 'Server error' });
     }
-})
+});
 
 module.exports = router
 
