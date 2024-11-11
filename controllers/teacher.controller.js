@@ -5,7 +5,7 @@ const Attendance = require('../models/attendance.model.js');
 const TeacherRegistration = async (req, res) => {
     // return res.send('teacher registration');
     try {
-        const { email, fullName, department, password, classes } = req.body
+        const { email, fullName, department, password } = req.body
 
         const teacher = await Teacher.findOne({ email })
 
