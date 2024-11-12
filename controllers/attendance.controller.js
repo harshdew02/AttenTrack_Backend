@@ -9,8 +9,21 @@ const CreateAttendance = async (req, res) => {
 
         const existingAttendance = await Attendance.findOne({ class_id, date });
         if (existingAttendance) {
-            return res.status(409).json({ message: "Attendance already exists for this class and date" });
+
+            const updatedAttendance = await Attendance.findOneAndUpdate(
+                { class_id, date },
+                { records }, // update with new records
+                { new: true, upsert: true } // create if not found (upsert)
+            );
+
+            return res.status(200).json({
+                message: updatedAttendance ? "Attendance updated" : "Attendance created",
+                attendance: updatedAttendance
+            });
+            // return res.status(409).json({ message: "Attendance already exists for this class and date" });
         }
+
+
 
         const newAttendance = new Attendance({
             class_id,
@@ -18,7 +31,7 @@ const CreateAttendance = async (req, res) => {
             records
         });
 
-        if (newAttendance) {            
+        if (newAttendance) {
             await newAttendance.save();
             res.status(201).json(newAttendance);
         } else {
