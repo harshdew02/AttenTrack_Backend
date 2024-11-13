@@ -1,10 +1,11 @@
 const Student = require("../models/student.model.js");
 const Class = require('../models/class.model.js');
+const Attendance = require('../models/attendance.model.js');
 
-const  StudentRegistration = async (req, res) => {
+const StudentRegistration = async (req, res) => {
     // return res.send('Student registration');
     try {
-        const { email, fullName, rollNumber, password} = req.body
+        const { email, fullName, rollNumber, password } = req.body
 
         const student = await Student.findOne({ rollNumber })
 
@@ -19,7 +20,7 @@ const  StudentRegistration = async (req, res) => {
             password,
         })
 
-        if(newStudent){
+        if (newStudent) {
             await newStudent.save()
 
             res.status(201).json(
@@ -31,14 +32,14 @@ const  StudentRegistration = async (req, res) => {
                     password: newStudent.password
                 }
             );
-        }else{
+        } else {
             res.status(400).json({ error: "Student not created" });
         }
 
     } catch (err) {
-       console.log("Error in StudentRegistration", err.message);
-       console.log(err);
-       res.status(500).send(err.message);
+        console.log("Error in StudentRegistration", err.message);
+        console.log(err);
+        res.status(500).send(err.message);
     }
 }
 
@@ -67,9 +68,9 @@ const StudentLogin = async (req, res) => {
         );
 
     } catch (err) {
-       console.log("Error in StudentLogin", err.message);
-       console.log(err);
-       res.status(500).send(err.message);
+        console.log("Error in StudentLogin", err.message);
+        console.log(err);
+        res.status(500).send(err.message);
     }
 }
 
@@ -79,15 +80,38 @@ const EnrolledClasses = async (req, res) => {
     try {
         const classes = await Class.find({
             'students.rollNumber': studentRollNumber
-          }).select('classname batch semester department');
-      
-          if (!classes || classes.length === 0) {
+        }).select('classname batch semester department');
+
+        if (!classes || classes.length === 0) {
             return res.status(404).json({ message: 'Student not found in any class' });
-          }
-          res.json(classes);
+        }
+        res.json(classes);
     } catch (error) {
         res.status(500).json({ message: 'Server error', error });
     }
 }
 
-module.exports = {StudentRegistration, StudentLogin, EnrolledClasses};
+const GetAttandaces = async (req, res) => {
+    const { class_id, rollNumber } = req.query;
+    try {
+        // Query attendance by class_id and rollNumber
+        const attendanceRecords = await Attendance.find({
+            class_id,
+            'records.rollNumber': rollNumber
+        }).select('date records.$'); // Only select dates and matching record
+
+        // Transform the result to only include date and is_present
+        const result = attendanceRecords.map(record => {
+            return {
+                date: record.date,
+                is_present: record.records[0].is_present
+            };
+        });
+        res.json(result);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+}
+
+module.exports = { StudentRegistration, StudentLogin, EnrolledClasses, GetAttandaces };
+

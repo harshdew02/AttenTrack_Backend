@@ -78,16 +78,16 @@ const TeacherLogin = async (req, res) => {
     }
 }
 
-
 const getReport = async (req, res) => {
     try {
-        const { classId, startDate, endDate } = req.body; // No need to get startDate from the body now
+        const { classId, startDate, endDate } = req.body;
 
+        // Get attendance count function
         const getAttendanceCount = async (classId, startDate, endDate) => {
             try {
                 const attendances = await Attendance.find({
                     class_id: classId,
-                    date: { $gte: new Date(startDate), $lte: new Date(endDate) } // Use the dynamic startDate and endDate
+                    date: { $gte: new Date(startDate), $lte: new Date(endDate) }
                 });
 
                 const attendanceCount = {};
@@ -114,10 +114,23 @@ const getReport = async (req, res) => {
             }
         };
 
-        // Step 2: Call the function using the first date and current date
+        // Get class data to include student names
+        const classData = await Class.findById(classId);
+        if (!classData) {
+            return res.status(404).json({ error: 'Class not found' });
+        }
+
+        // Calculate attendance and format response
         getAttendanceCount(classId, startDate, endDate)
-            .then(attendanceCount => {
-                res.status(200).json(attendanceCount);
+            .then(({ tot, attendanceCount }) => {
+                const rec = classData.students.map(student => ({
+                    name: student.name,
+                    rollNumber: student.rollNumber,
+                    noDaysP: attendanceCount[student.rollNumber] || 0
+                }));
+
+                res.status(200).json({ tot, rec });
+                // res.status(200).json({ tot, rec });
             })
             .catch(error => {
                 console.error(error);
@@ -129,6 +142,58 @@ const getReport = async (req, res) => {
         res.status(500).send(err.message);
     }
 };
+
+
+// const getReport = async (req, res) => {
+//     try {
+//         const { classId, startDate, endDate } = req.body; // No need to get startDate from the body now
+
+//         const getAttendanceCount = async (classId, startDate, endDate) => {
+//             try {
+//                 const attendances = await Attendance.find({
+//                     class_id: classId,
+//                     date: { $gte: new Date(startDate), $lte: new Date(endDate) } // Use the dynamic startDate and endDate
+//                 });
+
+//                 const attendanceCount = {};
+//                 let tot = 0;
+
+//                 attendances.forEach(attendance => {
+//                     attendance.records.forEach(record => {
+//                         const { rollNumber, is_present } = record;
+//                         if (!attendanceCount[rollNumber]) {
+//                             attendanceCount[rollNumber] = 0;
+//                         }
+//                         if (is_present) {
+//                             attendanceCount[rollNumber] += 1;
+//                         }
+//                     });
+//                     tot += 1;
+//                 });
+
+//                 return { tot, attendanceCount };
+
+//             } catch (error) {
+//                 console.error(error);
+//                 throw new Error('Error calculating attendance count');
+//             }
+//         };
+
+//         // Step 2: Call the function using the first date and current date
+//         getAttendanceCount(classId, startDate, endDate)
+//             .then(attendanceCount => {
+//                 res.status(200).json(attendanceCount);
+//             })
+//             .catch(error => {
+//                 console.error(error);
+//                 res.status(500).json({ error: 'Error calculating attendance report' });
+//             });
+
+//     } catch (err) {
+//         console.log("Error in getReport", err.message);
+//         res.status(500).send(err.message);
+//     }
+// };
 
 
 module.exports = { TeacherRegistration, TeacherLogin, getReport };
