@@ -1,4 +1,5 @@
 const Student = require("../models/student.model.js");
+const Class = require('../models/class.model.js');
 
 const  StudentRegistration = async (req, res) => {
     // return res.send('Student registration');
@@ -72,5 +73,21 @@ const StudentLogin = async (req, res) => {
     }
 }
 
+const EnrolledClasses = async (req, res) => {
+    const { studentRollNumber } = req.params;
+    // return res.json({ studentRollNumber });
+    try {
+        const classes = await Class.find({
+            'students.rollNumber': studentRollNumber
+          }).select('classname batch semester department');
+      
+          if (!classes || classes.length === 0) {
+            return res.status(404).json({ message: 'Student not found in any class' });
+          }
+          res.json(classes);
+    } catch (error) {
+        res.status(500).json({ message: 'Server error', error });
+    }
+}
 
-module.exports = {StudentRegistration, StudentLogin};
+module.exports = {StudentRegistration, StudentLogin, EnrolledClasses};
