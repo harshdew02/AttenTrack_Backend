@@ -87,7 +87,7 @@ const getReport = async (req, res) => {
             try {
                 const attendances = await Attendance.find({
                     class_id: classId,
-                    date: { $gte: new Data(startDate), $lte: new Data(endDate) } // Use the dynamic startDate and endDate
+                    date: { $gte: new Date(startDate), $lte: new Date(endDate) } // Use the dynamic startDate and endDate
                 });
 
                 const attendanceCount = {};
