@@ -1,6 +1,7 @@
 const Student = require("../models/student.model.js");
 const Class = require('../models/class.model.js');
 const Attendance = require('../models/attendance.model.js');
+const Teacher = require('../models/teacher.model.js');
 
 const StudentRegistration = async (req, res) => {
     // return res.send('Student registration');
@@ -107,7 +108,22 @@ const GetAttandaces = async (req, res) => {
                 is_present: record.records[0].is_present
             };
         });
-        res.json(result);
+
+        const classData = await Class.findById(class_id);
+        // console.log(classData);
+
+        if(!classData){
+            return res.status(404).json({ message: 'Class not found' });
+        }
+        // const teacherdata = await Teacher.findById(teacher, { fullName: 1 });
+
+        const teacherdata = await Teacher.findById(classData.teacher, { fullName: 1 });
+
+        if(!teacherdata){
+            return res.status(404).json({ message: 'Teacher not found' });
+        }
+
+        res.json({"teacher":teacherdata.fullName,res:result});
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

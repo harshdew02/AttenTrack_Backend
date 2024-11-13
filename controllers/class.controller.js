@@ -56,7 +56,7 @@ const CreateClass = async (req, res) => {
 
 const GetList = async (req, res) => {
     try {
-        const classData = await Class.findById(req.params.class_id, 'students');
+        const classData = await Class.findById(req.params.class_id);
         if (!classData) {
             return res.status(404).json({ message: 'Class not found' });
         }
@@ -64,7 +64,10 @@ const GetList = async (req, res) => {
             rollNumber: student.rollNumber,
             name: student.name,
         }));
-        res.json(students);
+
+        const teacherdata = await Teacher.findById(classData.teacher, { fullName: 1 });
+
+        res.json({ teacher: teacherdata.fullName, rec: students});
     } catch (error) {
         res.status(500).json({ error: 'Server error' });
     }
