@@ -81,47 +81,51 @@ const TeacherLogin = async (req, res) => {
 const getReport = async (req, res) => {
     try {
 
-        // const { class_id, startDate, endDate } = req.body;
-        const { classId, startDate, endDate } = req.body;
+        const { class_id, startDate, endDate } = req.body;
+        // const { classId, startDate, endDate } = req.body;
 
-        // const matchStage = {
-        //     $and: [
-        //         class_id ? { class_id: "class_id" } : {},
-        //         {
-        //             date: {
-        //                 $gte: new Date(startDate),
-        //                 $lte: new Date(endDate)
-        //             }
-        //         }
-        //     ]
-        // };
+        // let class_id = classId;
 
-        // const attendanceData = await Attendance.aggregate([
-        //     {
-        //         $match: matchStage
-        //     },
-        //     { $unwind: "$records" },
-        //     {
-        //         $group: {
-        //             _id: "$date",
-        //             presentCount: {
-        //                 $sum: { $cond: [{ $eq: ["$records.is_present", true] }, 1, 0] }
-        //             },
-        //             absentCount: {
-        //                 $sum: { $cond: [{ $eq: ["$records.is_present", false] }, 1, 0] }
-        //             }
-        //         }
-        //     },
-        //     {
-        //         $project: {
-        //             _id: 0,
-        //             date: '$_id',
-        //             presentCount: '$presentCount',
-        //             absentCount: '$absentCount'
-        //         }
-        //     },
-        //     { $sort: { date: 1 } }
-        // ]);
+        // const matchStage = class_id ? { class_id: "class_id" } : {};
+
+        const matchStage = {
+            $and: [
+                // class_id ? { class_id: "class_id" } : {},
+                {
+                    date: {
+                        $gte: new Date(startDate),
+                        $lte: new Date(endDate)
+                    }
+                }
+            ]
+        };
+
+        const attendanceData = await Attendance.aggregate([
+            {
+                $match: matchStage
+            },
+            { $unwind: "$records" },
+            {
+                $group: {
+                    _id: "$date",
+                    presentCount: {
+                        $sum: { $cond: [{ $eq: ["$records.is_present", true] }, 1, 0] }
+                    },
+                    absentCount: {
+                        $sum: { $cond: [{ $eq: ["$records.is_present", false] }, 1, 0] }
+                    }
+                }
+            },
+            {
+                $project: {
+                    _id: 0,
+                    date: '$_id',
+                    presentCount: '$presentCount',
+                    absentCount: '$absentCount'
+                }
+            },
+            { $sort: { date: 1 } }
+        ]);
 
         // res.json({ attenInfo: attendanceData });
         //   res.json({ "hi": "hello" });
@@ -162,13 +166,14 @@ const getReport = async (req, res) => {
         };
 
         // Get class data to include student names
-        const classData = await Class.findById(classId);
+        const classData = await Class.findById(class_id);
         if (!classData) {
-            return res.status(404).json({ error: 'Class not found' });
+            return res.status(404).json({ error: 'Class not found', classData, "class_id": class_id });
         }
+        
 
         // Calculate attendance and format response
-        getAttendanceCount(classId, startDate, endDate)
+        getAttendanceCount(class_id, startDate, endDate)
             .then(({ tot, attendanceCount }) => {
                 const rec = classData.students.map(student => ({
                     name: student.name,
@@ -176,7 +181,7 @@ const getReport = async (req, res) => {
                     noDaysP: attendanceCount[student.rollNumber] || 0
                 }));
 
-                res.status(200).json({ tot, rec });
+                res.status(200).json({ tot, rec, attendanceData });
                 // res.status(200).json({ tot, rec });
             })
             .catch(error => {
