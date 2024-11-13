@@ -23,31 +23,49 @@ router.get('/attendance', GetAttandaces);
 
 router.get('/attendance/:rollNumber', async (req, res) => {
     try {
-      const rollNumber = req.params.rollNumber;
+      const { rollNumber } = req.params;
   
-      // Find attendance records for the given roll number
-      const attendanceRecords = await Attendance.find({
-        "records.rollNumber": rollNumber
-      }).populate('class_id');
+      // Fetch all classes where the student is enrolled
+      const classes = await Class.find({ 'students.rollNumber': rollNumber });
+
+      console.log(classes);
   
-      // Process the attendance data
-      const attendanceSummary = attendanceRecords.map(record => {
-        const className = record.class_id.classname;
-        const numberOfDatesP = record.records.filter(r => r.rollNumber === rollNumber && r.is_present).length;
-        const numberOfDatesA = record.records.filter(r => r.rollNumber === rollNumber && !r.is_present).length;
+      if (!classes) {
+        return res.status(404).json({ message: 'Student not found in any class.' });
+      }
+  
+      const attendanceData = await Promise.all(classes.map(async (classData) => {
+        const attendanceRecords = await Attendance.find({ class_id: classData._id });
+  
+        let numberOfDatesP = 0;
+        let numberOfDatesA = 0;
+  
+        // Loop through each attendance record for the class and count presence/absence
+        attendanceRecords.forEach(record => {
+          const studentRecord = record.records.find(r => r.rollNumber === rollNumber);
+          if (studentRecord) {
+            if (studentRecord.is_present) {
+              numberOfDatesP++;
+            } else {
+              numberOfDatesA++;
+            }
+          }
+        });
   
         return {
-          class_name: className,
+          class_name: classData.classname,
           numberOfDatesP,
           numberOfDatesA
         };
-      });
+      }));
   
-      res.json(attendanceSummary);
+      res.json(attendanceData);
     } catch (error) {
-      res.status(500).json({ error: 'Server error' });
+      console.error(error);
+      res.status(500).json({ message: 'Internal server error.' });
     }
   });
+  
 
 module.exports = router
 
