@@ -81,23 +81,13 @@ const TeacherLogin = async (req, res) => {
 
 const getReport = async (req, res) => {
     try {
-        const { classId, endDate } = req.body; // No need to get startDate from the body now
-
-        // Step 1: Get the earliest date from the first attendance record for the class
-        const firstAttendanceRecord = await Attendance.findOne({ class_id: classId }).sort({ date: 1 });
-
-        if (!firstAttendanceRecord) {
-            return res.status(404).json({ error: 'No attendance records found for this class' });
-        }
-
-        const startDate = firstAttendanceRecord.date; // The earliest date from the first attendance record
-        const currentEndDate = endDate || new Date(); // Default endDate to the current date if not provided
+        const { classId, startDate, endDate } = req.body; // No need to get startDate from the body now
 
         const getAttendanceCount = async (classId, startDate, endDate) => {
             try {
                 const attendances = await Attendance.find({
                     class_id: classId,
-                    date: { $gte: startDate, $lte: endDate } // Use the dynamic startDate and endDate
+                    date: { $gte: new Data(startDate), $lte: new Data(endDate) } // Use the dynamic startDate and endDate
                 });
 
                 const attendanceCount = {};
@@ -125,7 +115,7 @@ const getReport = async (req, res) => {
         };
 
         // Step 2: Call the function using the first date and current date
-        getAttendanceCount(classId, startDate, currentEndDate)
+        getAttendanceCount(classId, startDate, endDate)
             .then(attendanceCount => {
                 res.status(200).json(attendanceCount);
             })
