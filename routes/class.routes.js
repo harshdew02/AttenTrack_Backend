@@ -1,7 +1,7 @@
 const express = require('express');
 const { route } = require('./teacher.routes');
 const Class = require('../models/class.model.js');  
-const { CreateClass } = require('../controllers/class.controller.js');
+const { CreateClass , GetList} = require('../controllers/class.controller.js');
 const router = express.Router();
 
 router.get('/', (req, res) => {
@@ -27,6 +27,8 @@ router.delete('/remove/:className', async (req, res) => {
         res.status(500).json({ message: 'Server error' });
     }
 });
+
+router.get('/getList/:class_id', GetList);
 
 module.exports = router
 

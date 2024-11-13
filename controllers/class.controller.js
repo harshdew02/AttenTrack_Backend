@@ -54,8 +54,24 @@ const CreateClass = async (req, res) => {
     }
 }
 
+const GetList = async (req, res) => {
+    try {
+        const classData = await Class.findById(req.params.class_id, 'students');
+        if (!classData) {
+            return res.status(404).json({ message: 'Class not found' });
+        }
+        const students = classData.students.map(student => ({
+            rollNumber: student.rollNumber,
+            name: student.name,
+        }));
+        res.json(students);
+    } catch (error) {
+        res.status(500).json({ error: 'Server error' });
+    }
+}
+
 module.exports = {
-    CreateClass,
+    CreateClass,GetList
 }
 
 
