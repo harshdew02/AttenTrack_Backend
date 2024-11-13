@@ -81,17 +81,26 @@ const TeacherLogin = async (req, res) => {
 
 const getReport = async (req, res) => {
     try {
-        const { classId, startDate, endDate } = req.body;
+        const { classId, endDate } = req.body; // No need to get startDate from the body now
+
+        // Step 1: Get the earliest date from the first attendance record for the class
+        const firstAttendanceRecord = await Attendance.findOne({ class_id: classId }).sort({ date: 1 });
+
+        if (!firstAttendanceRecord) {
+            return res.status(404).json({ error: 'No attendance records found for this class' });
+        }
+
+        const startDate = firstAttendanceRecord.date; // The earliest date from the first attendance record
+        const currentEndDate = endDate || new Date(); // Default endDate to the current date if not provided
 
         const getAttendanceCount = async (classId, startDate, endDate) => {
             try {
                 const attendances = await Attendance.find({
                     class_id: classId,
-                    date: { $gte: new Date(startDate), $lte: new Date(endDate) }
+                    date: { $gte: startDate, $lte: endDate } // Use the dynamic startDate and endDate
                 });
 
                 const attendanceCount = {};
-
                 let tot = 0;
 
                 attendances.forEach(attendance => {
@@ -107,7 +116,6 @@ const getReport = async (req, res) => {
                     tot += 1;
                 });
 
-
                 return { tot, attendanceCount };
 
             } catch (error) {
@@ -116,21 +124,21 @@ const getReport = async (req, res) => {
             }
         };
 
-        getAttendanceCount(classId, startDate, endDate)
+        // Step 2: Call the function using the first date and current date
+        getAttendanceCount(classId, startDate, currentEndDate)
             .then(attendanceCount => {
-                // console.log(attendanceCount);
                 res.status(200).json(attendanceCount);
-                // finaldata.attendanceCount = attendanceCount;
-                // Output example: { "ECE2025001": 15, "ECE2025002": 12, "ECE2025003": 18 }
             })
-            .catch(error => console.error(error));
-
+            .catch(error => {
+                console.error(error);
+                res.status(500).json({ error: 'Error calculating attendance report' });
+            });
 
     } catch (err) {
         console.log("Error in getReport", err.message);
-        console.log(err);
         res.status(500).send(err.message);
     }
-}
+};
+
 
 module.exports = { TeacherRegistration, TeacherLogin, getReport };
