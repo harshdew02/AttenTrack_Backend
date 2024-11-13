@@ -33,3 +33,8 @@ module.exports = router
 // },
 // ....
 // ]
+
+
+// teacher name include,  get student attendace vale me , class name include
+
+// 

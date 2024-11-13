@@ -80,7 +80,54 @@ const TeacherLogin = async (req, res) => {
 
 const getReport = async (req, res) => {
     try {
+
+        // const { class_id, startDate, endDate } = req.body;
         const { classId, startDate, endDate } = req.body;
+
+        // const matchStage = {
+        //     $and: [
+        //         class_id ? { class_id: "class_id" } : {},
+        //         {
+        //             date: {
+        //                 $gte: new Date(startDate),
+        //                 $lte: new Date(endDate)
+        //             }
+        //         }
+        //     ]
+        // };
+
+        // const attendanceData = await Attendance.aggregate([
+        //     {
+        //         $match: matchStage
+        //     },
+        //     { $unwind: "$records" },
+        //     {
+        //         $group: {
+        //             _id: "$date",
+        //             presentCount: {
+        //                 $sum: { $cond: [{ $eq: ["$records.is_present", true] }, 1, 0] }
+        //             },
+        //             absentCount: {
+        //                 $sum: { $cond: [{ $eq: ["$records.is_present", false] }, 1, 0] }
+        //             }
+        //         }
+        //     },
+        //     {
+        //         $project: {
+        //             _id: 0,
+        //             date: '$_id',
+        //             presentCount: '$presentCount',
+        //             absentCount: '$absentCount'
+        //         }
+        //     },
+        //     { $sort: { date: 1 } }
+        // ]);
+
+        // res.json({ attenInfo: attendanceData });
+        //   res.json({ "hi": "hello" });
+        // return;
+
+        // const classId = class_id;
 
         // Get attendance count function
         const getAttendanceCount = async (classId, startDate, endDate) => {
