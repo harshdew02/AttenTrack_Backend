@@ -24,7 +24,6 @@ app.use(express.json());
 
 let currentOTP = null;
 let finalTime = 1; 
-let index = 0;
 
 wss.on('connection', (ws) => {
   ws.on('message', (message) => {
@@ -42,12 +41,6 @@ wss.on('connection', (ws) => {
           client.send(JSON.stringify({ type: 'attendance2', rollNumber: data.rollNumber }));
         }
       });
-        }else if(data.type === 'teacherLoc'){
-      wss.clients.forEach((client) => {
-        if (client.readyState === WebSocket.OPEN) {
-          client.send(JSON.stringify({ type: 'teacherLoc', location: data.location, range:data.range }));
-        }
-      });
     }
     if(data.type==='first_call'){
       wss.clients.forEach((client) => {
@@ -63,7 +56,6 @@ wss.on('connection', (ws) => {
   });
 });
 
-
 app.post('/setAttendance', (req, res) => {
   const { otp, time } = req.body;
   currentOTP = otp;
@@ -73,16 +65,6 @@ app.post('/setAttendance', (req, res) => {
 
 app.get('/getAttendance', (req, res) => {
   res.json({currentOTP, finalTime});
-});
-
-app.post('/setIndex', (req, res) => {
-  const { index } = req.body;
-  index = index;
-  res.send('Index Changed');
-});
-
-app.get('/getIndex', (req, res) => {
-  res.json({index});
 });
 
 app.get('/', (req, res) => {
