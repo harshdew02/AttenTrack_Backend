@@ -41,6 +41,12 @@ wss.on('connection', (ws) => {
           client.send(JSON.stringify({ type: 'attendance2', rollNumber: data.rollNumber }));
         }
       });
+    }else if(data.type === 'teacherLoc'){
+      wss.clients.forEach((client) => {
+        if (client.readyState === WebSocket.OPEN) {
+          client.send(JSON.stringify({ type: 'teacherLoc', location: data.location, range:data.range }));
+        }
+      });
     }
     if(data.type==='first_call'){
       wss.clients.forEach((client) => {
