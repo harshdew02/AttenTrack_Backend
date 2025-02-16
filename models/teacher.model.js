@@ -22,7 +22,7 @@ const teacherSchema = new Schema({
         type: String,
         required: true
     },
-    classes: [{
+    courses: [{
         type: Schema.Types.ObjectId,
         ref: 'Class'
     }]

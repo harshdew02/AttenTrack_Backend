@@ -6,7 +6,8 @@ const classSchema = new Schema({
 
   classname: {
     type: String,
-    required: true
+    required: true,
+    unique: true
   },
   batch: {
     type: Number,
@@ -20,21 +21,9 @@ const classSchema = new Schema({
     type: String,
     required: true
   },
-  // sheet: {
-  //   type: Schema.Types.ObjectId,
-  //   ref: 'Sheet'
-  // },
-  students: [{
-    name: {
-      type: String,
-      required: true,
-      trim: true
-    },
-    rollNumber: {
-      type: String,
-      required: true,
-      trim: true
-    }
+  studentsId: [{
+    type: Schema.Types.ObjectId,
+    ref: 'Student'
   }],
   teacher: {
     type: Schema.Types.ObjectId,

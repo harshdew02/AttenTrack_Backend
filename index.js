@@ -3,6 +3,8 @@ const http = require('http');
 const WebSocket = require('ws');
 const cors = require('cors');
 const dotenv = require('dotenv').config();
+const swaggerUi = require('swagger-ui-express');
+const swaggerDocument = require('./swagger-output.json');
 
 const connectDB = require('./config/connectdb.js');
 const app = express();
@@ -24,6 +26,8 @@ app.use(express.json());
 
 let currentOTP = null;
 let finalTime = 1; 
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 wss.on('connection', (ws) => {
   ws.on('message', (message) => {
@@ -80,6 +84,7 @@ app.get('/', (req, res) => {
 
 app.use("/api/student", require("./routes/student.routes.js"));
 app.use("/api/teacher", require("./routes/teacher.routes.js"));
+app.use("/api/superadmin", require("./routes/superadmin.routes.js"));
 app.use("/api/class", require("./routes/class.routes.js"));
 app.use("/api/sheet", require("./routes/sheet.routes.js"));
 app.use("/api/attendance", require("./routes/attendance.routes.js"));

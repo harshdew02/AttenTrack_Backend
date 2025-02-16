@@ -1,20 +1,19 @@
 const express = require('express');
-const { StudentRegistration, StudentLogin , EnrolledClasses, GetAttandaces} = require('../controllers/student.controller.js');
+const { StudentRegistration, StudentLogin , EnrolledClasses, GetAttandaces, VerifyOTP} = require('../controllers/student.controller.js');
 const router = express.Router();
 const Attendance = require('../models/attendance.model.js');
 const Class = require('../models/class.model.js');
+const {AuthOTPVerify, TokentLogin} = require('../middleware/authverify.js');
 
-router.get('/', (req, res) => {
-    res.send('route frome student');
-})
+// router.get('/', (req, res) => {
+//     res.send('route frome student');
+// })
 
 router.post('/register', StudentRegistration)
-
+router.post('/verify-otp', AuthOTPVerify, VerifyOTP) 
 router.post('/login', StudentLogin)
+router.get('/token-login', TokentLogin, StudentLogin)
 
-router.post('/otp', (req, res) => {
-    res.send('route frome student');
-})
 
 router.get('/class-info/:studentRollNumber', EnrolledClasses );
 
