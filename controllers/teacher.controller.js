@@ -109,6 +109,15 @@ const TeacherLogin = async (req, res) => {
     }
 }
 
+const GetClasses = async (req, res) => {    
+    try {
+        const classes = await Class.find({});
+        res.json(classes);
+    } catch (error) {
+        res.status(500).json({ message: 'Server error', error });
+    }
+}
+
 const getReport = async (req, res) => {
     try {
 
@@ -279,4 +288,4 @@ const getReport = async (req, res) => {
 // };
 
 
-module.exports = { TeacherRegistration, TeacherLogin, getReport, VerifyOTP };
+module.exports = { TeacherRegistration, TeacherLogin, getReport, VerifyOTP, GetClasses };

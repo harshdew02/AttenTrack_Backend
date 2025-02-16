@@ -43,7 +43,7 @@ const CreateClass = async (req, res) => {
                 } else {
                     const newStudent = new Student({
                         email: student.email,
-                        fullName: student.name,
+                        fullName: student.fullName,
                         rollNumber: student.rollNumber,
                         password: "any",
                         batch: batch.toString(),
@@ -61,12 +61,20 @@ const CreateClass = async (req, res) => {
             const clss = await newClass.save();
 
             if (clss) {
-                return res.status(201).json({ message: "Class created successfully" });
+                let body = {
+                    class_id: clss._id,
+                    classname: clss.classname,
+                    batch: clss.batch,
+                    semester: clss.semester,
+                    department: clss.department,
+                    teacher: clss.teacher
+                }
+                return res.status(201).json( body );
             } else {
                 return res.status(400).json({ error: "Class not created" });
             }
 
-        }else{
+        } else {
             return res.status(400).json({ error: "Class not created" });
         }
 
@@ -82,14 +90,31 @@ const GetList = async (req, res) => {
         if (!classData) {
             return res.status(404).json({ message: 'Class not found' });
         }
-        const students = classData.students.map(student => ({
-            rollNumber: student.rollNumber,
-            name: student.name,
-        }));
 
-        const teacherdata = await Teacher.findById(classData.teacher, { fullName: 1 });
+        let students = [];
 
-        res.json({ teacher: teacherdata.fullName, rec: students });
+        for (const studentId of classData.studentsId) {
+            const student = await Student.findById(studentId);
+            if (student) {
+                let studentData = {
+                    name: student.fullName,
+                    rollNumber: student.rollNumber,
+                    email: student.email
+                }
+                students.push(studentData);
+            }
+        }
+
+        const body = {
+            class_id: classData._id,
+            classname: classData.classname,
+            batch: classData.batch,
+            semester: classData.semester,
+            department: classData.department,
+            students: students
+        }
+
+        res.status(200).json(body);
     } catch (error) {
         res.status(500).json({ error: 'Server error' });
     }

@@ -8,7 +8,7 @@ router.get('/', (req, res) => {
     res.send('route frome class');
 })
 
-router.post('/createClass', CreateClass);
+router.post('/create-class', CreateClass);
 
 router.delete('/remove/:className', async (req, res) => {
     try {

@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Attendance = require('../models/attendance.model.js');
 
-const { TeacherRegistration, TeacherLogin, getReport, VerifyOTP } = require('../controllers/teacher.controller.js');
+const { TeacherRegistration, TeacherLogin, getReport, VerifyOTP, GetClasses } = require('../controllers/teacher.controller.js');
 const { get } = require('mongoose');
 const { AuthOTPVerify, TokentLoginTeacher } = require('../middleware/authverify.js');
 
@@ -15,7 +15,7 @@ router.post('/verify-otp', AuthOTPVerify, VerifyOTP)
 router.post('/login', TeacherLogin);
 router.get('/token-login', TokentLoginTeacher, TeacherLogin)
 
-
+router.get('/classes', GetClasses);
 
 
 router.post('/records', getReport)
