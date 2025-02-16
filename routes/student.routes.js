@@ -13,9 +13,8 @@ router.post('/register', StudentRegistration)
 router.post('/verify-otp', AuthOTPVerify, VerifyOTP) 
 router.post('/login', StudentLogin)
 router.get('/token-login', TokentLogin, StudentLogin)
+router.get('/classes-info/:student_id', EnrolledClasses );
 
-
-router.get('/class-info/:studentRollNumber', EnrolledClasses );
 
 router.get('/attendance', GetAttandaces);
 
