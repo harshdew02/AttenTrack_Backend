@@ -2,39 +2,72 @@ const Student = require("../models/student.model.js");
 const Class = require('../models/class.model.js');
 const Attendance = require('../models/attendance.model.js');
 const Teacher = require('../models/teacher.model.js');
+const { generateToken } = require("../services/token.service.js");
 
-const StudentRegistration = async (req, res) => {
-    // return res.send('Student registration');
+// const SendOTP = async (stud, email) => {
+//     res.send('route frome student');
+// }
+
+const VerifyOTP = async (req, res) => {
     try {
-        const { email, fullName, rollNumber, password } = req.body
+        const { email, password, otp } = req.body
 
-        const student = await Student.findOne({ rollNumber })
+        const student = await Student.findOne({ email })
 
         if (student) {
-            return res.status(400).json({ error: "Student already exists" })
-        }
+            student.password = password;
 
-        const newStudent = new Student({
-            email,
-            fullName,
-            rollNumber,
-            password,
-        })
+            await student.save();
 
-        if (newStudent) {
-            await newStudent.save()
+            let token = generateToken({ id: student._id });
 
-            res.status(201).json(
+            return res.status(201).json(
                 {
-                    _id: newStudent._id,
-                    email: newStudent.email,
-                    fullName: newStudent.fullName,
-                    rollNumber: newStudent.rollNumber,
-                    password: newStudent.password
+                    id: student._id,
+                    email: student.email,
+                    fullName: student.fullName,
+                    rollNumber: student.rollNumber,
+                    password: student.password,
+                    batch: student.batch,
+                    coursesId: student.courses,
+                    token: token
                 }
             );
         } else {
-            res.status(400).json({ error: "Student not created" });
+            return res.status(404).json({ error: "Not found please tell your teacher to add in sheet" })
+        }
+
+    } catch (err) {
+        console.log("Error in StudentRegistration", err.message);
+        console.log(err);
+        res.status(500).send(err.message);
+    }
+}
+
+const StudentRegistration = async (req, res) => {
+    try {
+        const { email } = req.body
+
+        const student = await Student.findOne({ email })
+
+        if (student) {
+            if (student.password === "any") {
+
+                const otp = Math.floor(100000 + Math.random() * 900000);
+
+                // SendOTP(student, email, otp);
+
+                return res.status(200).json(
+                    {
+                        otpToken: generateToken({ otp: otp }),
+                        tempOtp: otp
+                    }
+                );
+            } else {
+                return res.status(403).json({ error: "Student already registered please login or do forget password" })
+            }
+        } else {
+            return res.status(404).json({ error: "Not found please tell your teacher to add in Class sheet" })
         }
 
     } catch (err) {
@@ -47,24 +80,33 @@ const StudentRegistration = async (req, res) => {
 
 const StudentLogin = async (req, res) => {
     try {
-        const { email, rollNumber, password } = req.body
+        const { rollNumber, password } = req.body
         const student = await Student.findOne({ rollNumber })
 
         if (!student) {
             return res.status(400).json({ error: "Student not found" })
         }
 
+        if (student.password === "any") {
+            return res.status(400).json({ error: "Student not registered please tell your teacher to add in sheet" })
+        }
+
         if (student.password !== password) {
             return res.status(400).json({ error: "Invalid password" })
         }
 
-        res.status(200).json(
+        let token = generateToken({ id: student._id});
+
+        return res.status(201).json(
             {
-                _id: student._id,
+                id: student._id,
                 email: student.email,
                 fullName: student.fullName,
                 rollNumber: student.rollNumber,
-                password: student.password
+                password: student.password,
+                batch: student.batch,
+                coursesId: student.courses,
+                token: token
             }
         );
 
@@ -112,22 +154,22 @@ const GetAttandaces = async (req, res) => {
         const classData = await Class.findById(class_id);
         // console.log(classData);
 
-        if(!classData){
+        if (!classData) {
             return res.status(404).json({ message: 'Class not found' });
         }
         // const teacherdata = await Teacher.findById(teacher, { fullName: 1 });
 
         const teacherdata = await Teacher.findById(classData.teacher, { fullName: 1 });
 
-        if(!teacherdata){
+        if (!teacherdata) {
             return res.status(404).json({ message: 'Teacher not found' });
         }
 
-        res.json({"teacher":teacherdata.fullName,res:result});
+        res.json({ "teacher": teacherdata.fullName, res: result });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 }
 
-module.exports = { StudentRegistration, StudentLogin, EnrolledClasses, GetAttandaces };
+module.exports = { StudentRegistration, StudentLogin, EnrolledClasses, GetAttandaces, VerifyOTP };
 

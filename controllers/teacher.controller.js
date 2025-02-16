@@ -1,43 +1,69 @@
 const Teacher = require("../models/teacher.model.js");
 const Class = require('../models/class.model.js');
 const Attendance = require('../models/attendance.model.js');
+const { generateToken } = require("../services/token.service.js");
 
-const TeacherRegistration = async (req, res) => {
-    // return res.send('teacher registration');
+
+const VerifyOTP = async (req, res) => {
     try {
-        const { email, fullName, department, password } = req.body
+        const { email, password, otp } = req.body
 
         const teacher = await Teacher.findOne({ email })
 
         if (teacher) {
-            return res.status(400).json({ error: "Teacher already exists" })
-        }
+            teacher.password = password;
 
-        const newTeacher = new Teacher({
-            email,
-            fullName,
-            department,
-            password,
-            classes: []
-        })
+            await teacher.save();
 
-        if (newTeacher) {
-            await newTeacher.save()
+            let token = generateToken({ id: teacher._id });
 
-            res.status(201).json(
+            return res.status(200).json(
                 {
-                    _id: newTeacher._id,
-                    email: newTeacher.email,
-                    fullName: newTeacher.fullName,
-                    department: newTeacher.department,
-                    password: newTeacher.password,
-                    classes: newTeacher.classes
+                    id: teacher._id,
+                    email: teacher.email,
+                    fullName: teacher.fullName,
+                    password: teacher.password,
+                    department: teacher.department,
+                    coursesId: teacher.courses,
+                    token: token
                 }
             );
         } else {
-            res.status(400).json({ error: "Teacher not created" });
+            return res.status(404).json({ error: "Not found please tell your teacher to add in sheet" })
         }
+    } catch (err) {
+        console.log("Error in teacherRegistration", err.message);
+        console.log(err);
+        res.status(500).send(err.message);
+    }
+}
 
+const TeacherRegistration = async (req, res) => {
+    // return res.send('teacher registration');
+    try {
+        const { email } = req.body
+
+        const teacher = await Teacher.findOne({ email })
+
+        if (teacher) {
+            if (teacher.password === "any") {
+
+                const otp = Math.floor(100000 + Math.random() * 900000);
+
+                // SendOTP(student, email, otp);
+
+                return res.status(200).json(
+                    {
+                        otpToken: generateToken({ otp: otp }),
+                        tempOtp: otp
+                    }
+                );
+            } else {
+                return res.status(403).json({ error: "Teacher already registered please login or do forget password" })
+            }
+        } else {
+            return res.status(404).json({ error: "Not found please tell the super admin to add in Teacher sheet" })
+        }
     } catch (err) {
         console.log("Error in TeacherRegistration", err.message);
         console.log(err);
@@ -47,32 +73,37 @@ const TeacherRegistration = async (req, res) => {
 
 const TeacherLogin = async (req, res) => {
     try {
-        const { email, department, password } = req.body
-        const teacher = await Teacher.findOne({ email })
+
+        const { email, password } = req.body
+        const teacher = await Teacher.findOne({email })
 
         if (!teacher) {
-            return res.status(400).json({ error: "Teacher not found" })
+            return res.status(400).json({ error: "teacher not found" })
+        }
+
+        if (teacher.password === "any") {
+            return res.status(400).json({ error: "teacher not registered please tell your teacher to add in sheet" })
         }
 
         if (teacher.password !== password) {
             return res.status(400).json({ error: "Invalid password" })
         }
 
-        const cls = await Class.find({ _id: { $in: teacher.classes } });
+        let token = generateToken({ id: teacher._id });
 
-        res.status(200).json(
+        return res.status(200).json(
             {
-                _id: teacher._id,
+                id: teacher._id,
                 email: teacher.email,
                 fullName: teacher.fullName,
-                department: teacher.department,
                 password: teacher.password,
-                classes: cls
+                department: teacher.department,
+                coursesId: teacher.courses,
+                token: token
             }
         );
-
     } catch (err) {
-        console.log("Error in TeacherLogin", err.message);
+        console.log("Error in Teacher Login", err.message);
         console.log(err);
         res.status(500).send(err.message);
     }
@@ -170,7 +201,7 @@ const getReport = async (req, res) => {
         if (!classData) {
             return res.status(404).json({ error: 'Class not found', classData, "class_id": class_id });
         }
-        
+
 
         // Calculate attendance and format response
         getAttendanceCount(class_id, startDate, endDate)
@@ -248,4 +279,4 @@ const getReport = async (req, res) => {
 // };
 
 
-module.exports = { TeacherRegistration, TeacherLogin, getReport };
+module.exports = { TeacherRegistration, TeacherLogin, getReport, VerifyOTP };
