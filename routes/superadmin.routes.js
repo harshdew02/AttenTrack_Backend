@@ -3,9 +3,7 @@ const { AddTeacheronBulk, AddTeacher } = require('../controllers/superadmin.cont
 const router = express.Router();
 
 
-
 router.post('/add-teacher', AddTeacher);
 router.post('/add-teachers', AddTeacheronBulk);
-
 
 module.exports = router
