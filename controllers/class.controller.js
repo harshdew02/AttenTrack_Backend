@@ -28,7 +28,12 @@ const CreateClass = async (req, res) => {
 
             await newClass.save();
 
-            let studentarray = [];
+            const teacher = await Teacher.findById(teacherid);
+
+            if (teacher) {
+                teacher.courses.push(newClass._id);
+                await teacher.save();
+            }
 
             const courseId = newClass._id;
 
@@ -67,7 +72,7 @@ const CreateClass = async (req, res) => {
                     batch: clss.batch,
                     semester: clss.semester,
                     department: clss.department,
-                    teacher: clss.teacher
+                    teacherid: clss.teacher
                 }
                 return res.status(201).json( body );
             } else {

@@ -111,10 +111,40 @@ const TeacherLogin = async (req, res) => {
 
 const GetClasses = async (req, res) => {    
     try {
-        const classes = await Class.find({});
-        res.json(classes);
-    } catch (error) {
-        res.status(500).json({ message: 'Server error', error });
+        const teacherdata = await Teacher.findById(req.params.teacher_id);
+
+        if (!teacherdata) {
+            return res.status(404).json({ message: 'Teacher not found' });    
+        }
+
+        let classes = [];
+
+        for(const classId of teacherdata.courses){
+            const classData = await Class.findById(classId);
+            if(classData){
+                let classInfo = {
+                    classname: classData.classname,
+                    batch: classData.batch,
+                    semester: classData.semester,
+                    department: classData.department,
+                    class_id: classData._id,
+                    student_count: classData.studentsId.length
+                }
+                classes.push(classInfo);
+            }
+        }
+
+        let body = {
+            teacher_id: teacherdata._id,
+            teacher_email: teacherdata.email,
+            teacher_name: teacherdata.fullName,
+            department: teacherdata.department,
+            classes: classes,
+        }
+
+        res.json(body);
+    } catch (err) {
+        res.status(500).json({ message: 'Server error', error: err.message });
     }
 }
 

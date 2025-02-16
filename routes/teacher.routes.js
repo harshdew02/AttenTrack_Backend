@@ -14,8 +14,7 @@ router.post('/register', TeacherRegistration);
 router.post('/verify-otp', AuthOTPVerify, VerifyOTP) 
 router.post('/login', TeacherLogin);
 router.get('/token-login', TokentLoginTeacher, TeacherLogin)
-
-router.get('/classes', GetClasses);
+router.get('/classes/:teacher_id', GetClasses);
 
 
 router.post('/records', getReport)
