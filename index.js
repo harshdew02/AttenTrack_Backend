@@ -86,7 +86,7 @@ app.use("/api/student", require("./routes/student.routes.js"));
 app.use("/api/teacher", require("./routes/teacher.routes.js"));
 app.use("/api/superadmin", require("./routes/superadmin.routes.js"));
 app.use("/api/class", require("./routes/class.routes.js"));
-app.use("/api/sheet", require("./routes/sheet.routes.js"));
+// app.use("/api/sheet", require("./routes/sheet.routes.js"));
 app.use("/api/attendance", require("./routes/attendance.routes.js"));
 
 

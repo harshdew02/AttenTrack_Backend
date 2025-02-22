@@ -28,7 +28,12 @@ const CreateClass = async (req, res) => {
 
             await newClass.save();
 
-            let studentarray = [];
+            const teacher = await Teacher.findById(teacherid);
+
+            if (teacher) {
+                teacher.courses.push(newClass._id);
+                await teacher.save();
+            }
 
             const courseId = newClass._id;
 
@@ -43,7 +48,7 @@ const CreateClass = async (req, res) => {
                 } else {
                     const newStudent = new Student({
                         email: student.email,
-                        fullName: student.name,
+                        fullName: student.fullName,
                         rollNumber: student.rollNumber,
                         password: "any",
                         batch: batch.toString(),
@@ -61,12 +66,20 @@ const CreateClass = async (req, res) => {
             const clss = await newClass.save();
 
             if (clss) {
-                return res.status(201).json({ message: "Class created successfully" });
+                let body = {
+                    class_id: clss._id,
+                    classname: clss.classname,
+                    batch: clss.batch,
+                    semester: clss.semester,
+                    department: clss.department,
+                    teacherid: clss.teacher
+                }
+                return res.status(201).json(body);
             } else {
                 return res.status(400).json({ error: "Class not created" });
             }
 
-        }else{
+        } else {
             return res.status(400).json({ error: "Class not created" });
         }
 
@@ -78,25 +91,62 @@ const CreateClass = async (req, res) => {
 
 const GetList = async (req, res) => {
     try {
-        const classData = await Class.findById(req.params.class_id);
+
+        const {class_id} = req.params;
+
+        const classData = await Class.findById(class_id);
         if (!classData) {
             return res.status(404).json({ message: 'Class not found' });
         }
-        const students = classData.students.map(student => ({
-            rollNumber: student.rollNumber,
-            name: student.name,
-        }));
 
-        const teacherdata = await Teacher.findById(classData.teacher, { fullName: 1 });
+        let students = [];
 
-        res.json({ teacher: teacherdata.fullName, rec: students });
+        for (const studentId of classData.studentsId) {
+            const student = await Student.findById(studentId);
+            if (student) {
+                let studentData = {
+                    name: student.fullName,
+                    rollNumber: student.rollNumber,
+                    email: student.email
+                }
+                students.push(studentData);
+            }
+        }
+
+        const body = {
+            class_id: classData._id,
+            classname: classData.classname,
+            batch: classData.batch,
+            semester: classData.semester,
+            department: classData.department,
+            students: students
+        }
+
+        res.status(200).json(body);
     } catch (error) {
         res.status(500).json({ error: 'Server error' });
     }
 }
 
+const DeletClass = async (req, res) => {
+    try {
+        const { ClassId } = req.params;
+
+        const deletedClass = await Class.findByIdAndDelete(ClassId);
+
+        if (!deletedClass) {
+            return res.status(404).json({ message: 'Class not found' });
+        }
+
+        res.status(200).json({ message: 'Class deleted successfully' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
+}
+
 module.exports = {
-    CreateClass, GetList
+    CreateClass, GetList, DeletClass
 }
 
 

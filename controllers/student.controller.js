@@ -3,6 +3,8 @@ const Class = require('../models/class.model.js');
 const Attendance = require('../models/attendance.model.js');
 const Teacher = require('../models/teacher.model.js');
 const { generateToken } = require("../services/token.service.js");
+const bcrypt = require('bcryptjs');
+const { comparePassword } = require("../services/encrypt.service.js");
 
 // const SendOTP = async (stud, email) => {
 //     res.send('route frome student');
@@ -51,7 +53,7 @@ const StudentRegistration = async (req, res) => {
         const student = await Student.findOne({ email })
 
         if (student) {
-            if (student.password === "any") {
+            if (await bcrypt.compare("any", student.password)) {
 
                 const otp = Math.floor(100000 + Math.random() * 900000);
 
@@ -87,15 +89,17 @@ const StudentLogin = async (req, res) => {
             return res.status(400).json({ error: "Student not found" })
         }
 
-        if (student.password === "any") {
-            return res.status(400).json({ error: "Student not registered please tell your teacher to add in sheet" })
+        if (await bcrypt.compare("any", student.password)) {
+            return res.status(400).json({ error: "Please do sing up first" })
         }
 
-        if (student.password !== password) {
+        const isMatch = await bcrypt.compare(password, student.password);
+        
+        if (!isMatch) {
             return res.status(400).json({ error: "Invalid password" })
         }
 
-        let token = generateToken({ id: student._id});
+        let token = generateToken({ id: student._id });
 
         return res.status(201).json(
             {
@@ -118,17 +122,41 @@ const StudentLogin = async (req, res) => {
 }
 
 const EnrolledClasses = async (req, res) => {
-    const { studentRollNumber } = req.params;
-    // return res.json({ studentRollNumber });
-    try {
-        const classes = await Class.find({
-            'students.rollNumber': studentRollNumber
-        }).select('classname batch semester department');
 
-        if (!classes || classes.length === 0) {
-            return res.status(404).json({ message: 'Student not found in any class' });
+    try {
+        const studentdata = await Student.findById(req.params.student_id);
+
+        if (!studentdata) {
+            return res.status(404).json({ message: 'Student not found' });
         }
-        res.json(classes);
+
+        let classes = [];
+
+        for (const classId of studentdata.courses) {
+            const classData = await Class.findById(classId);
+            if (classData) {
+                let classInfo = {
+                    class_id: classData._id,
+                    classname: classData.classname,
+                    batch: classData.batch,
+                    semester: classData.semester,
+                    department: classData.department,
+                    student_count: classData.studentsId.length
+                }
+                classes.push(classInfo);
+            }
+        }
+
+        let body = {
+            student_id: studentdata._id,
+            fullName: studentdata.fullName,
+            rollNumber: studentdata.rollNumber,
+            email: studentdata.email,
+            classes: classes,
+        }
+
+        res.json(body);
+
     } catch (error) {
         res.status(500).json({ message: 'Server error', error });
     }
