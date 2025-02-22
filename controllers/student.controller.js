@@ -3,6 +3,8 @@ const Class = require('../models/class.model.js');
 const Attendance = require('../models/attendance.model.js');
 const Teacher = require('../models/teacher.model.js');
 const { generateToken } = require("../services/token.service.js");
+const bcrypt = require('bcryptjs');
+const { comparePassword } = require("../services/encrypt.service.js");
 
 // const SendOTP = async (stud, email) => {
 //     res.send('route frome student');
@@ -51,7 +53,7 @@ const StudentRegistration = async (req, res) => {
         const student = await Student.findOne({ email })
 
         if (student) {
-            if (student.password === "any") {
+            if (await bcrypt.compare("any", student.password)) {
 
                 const otp = Math.floor(100000 + Math.random() * 900000);
 
@@ -87,11 +89,13 @@ const StudentLogin = async (req, res) => {
             return res.status(400).json({ error: "Student not found" })
         }
 
-        if (student.password === "any") {
-            return res.status(400).json({ error: "Student not registered please tell your teacher to add in sheet" })
+        if (await bcrypt.compare("any", student.password)) {
+            return res.status(400).json({ error: "Please do sing up first" })
         }
 
-        if (student.password !== password) {
+        const isMatch = await bcrypt.compare(password, student.password);
+        
+        if (!isMatch) {
             return res.status(400).json({ error: "Invalid password" })
         }
 

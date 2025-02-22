@@ -46,7 +46,7 @@ const TeacherRegistration = async (req, res) => {
         const teacher = await Teacher.findOne({ email })
 
         if (teacher) {
-            if (teacher.password === "any") {
+            if (await bcrypt.compare("any", teacher.password)) {
 
                 const otp = Math.floor(100000 + Math.random() * 900000);
 
@@ -81,11 +81,13 @@ const TeacherLogin = async (req, res) => {
             return res.status(400).json({ error: "teacher not found" })
         }
 
-        if (teacher.password === "any") {
+        if (await bcrypt.compare("any", teacher.password)) {
             return res.status(400).json({ error: "teacher not registered please tell your teacher to add in sheet" })
         }
 
-        if (teacher.password !== password) {
+         const isMatch = await bcrypt.compare(password, teacher.password);
+
+        if (!isMatch) {
             return res.status(400).json({ error: "Invalid password" })
         }
 
