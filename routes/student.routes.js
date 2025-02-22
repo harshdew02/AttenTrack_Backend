@@ -9,16 +9,16 @@ const {AuthOTPVerify, TokentLogin} = require('../middleware/authverify.js');
 //     res.send('route frome student');
 // })
 
+// done start
 router.post('/register', StudentRegistration)
 router.post('/verify-otp', AuthOTPVerify, VerifyOTP) 
 router.post('/login', StudentLogin)
 router.get('/token-login', TokentLogin, StudentLogin)
 router.get('/classes-info/:student_id', EnrolledClasses );
+// done end
 
 
 router.get('/attendance', GetAttandaces);
-
-
 router.get('/attendance/:rollNumber', async (req, res) => {
     try {
       const { rollNumber } = req.params;

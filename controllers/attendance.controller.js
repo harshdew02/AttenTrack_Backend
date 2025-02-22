@@ -16,14 +16,14 @@ const CreateAttendance = async (req, res) => {
                 { new: true, upsert: true } // create if not found (upsert)
             );
 
+            await updatedAttendance.save();
+
             return res.status(200).json({
                 message: updatedAttendance ? "Attendance updated" : "Attendance created",
                 attendance: updatedAttendance
             });
             // return res.status(409).json({ message: "Attendance already exists for this class and date" });
         }
-
-
 
         const newAttendance = new Attendance({
             class_id,
@@ -33,7 +33,12 @@ const CreateAttendance = async (req, res) => {
 
         if (newAttendance) {
             await newAttendance.save();
-            res.status(201).json(newAttendance);
+
+            return res.status(201).json({
+                message:"Attendance created",
+                attendance: newAttendance
+            });
+
         } else {
             return res.status(400).json({ message: "Attendance not created" });
         }

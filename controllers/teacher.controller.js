@@ -75,7 +75,7 @@ const TeacherLogin = async (req, res) => {
     try {
 
         const { email, password } = req.body
-        const teacher = await Teacher.findOne({email })
+        const teacher = await Teacher.findOne({ email })
 
         if (!teacher) {
             return res.status(400).json({ error: "teacher not found" })
@@ -109,19 +109,19 @@ const TeacherLogin = async (req, res) => {
     }
 }
 
-const GetClasses = async (req, res) => {    
+const GetClasses = async (req, res) => {
     try {
         const teacherdata = await Teacher.findById(req.params.teacher_id);
 
         if (!teacherdata) {
-            return res.status(404).json({ message: 'Teacher not found' });    
+            return res.status(404).json({ message: 'Teacher not found' });
         }
 
         let classes = [];
 
-        for(const classId of teacherdata.courses){
+        for (const classId of teacherdata.courses) {
             const classData = await Class.findById(classId);
-            if(classData){
+            if (classData) {
                 let classInfo = {
                     classname: classData.classname,
                     batch: classData.batch,
@@ -150,119 +150,40 @@ const GetClasses = async (req, res) => {
 
 const getReport = async (req, res) => {
     try {
+        const { class_id, startDate, endDate, rollNumber } = req.body;
 
-        const { class_id, startDate, endDate } = req.body;
-        // const { classId, startDate, endDate } = req.body;
-
-        // let class_id = classId;
-
-        // const matchStage = class_id ? { class_id: "class_id" } : {};
-
-        const matchStage = {
-            $and: [
-                // class_id ? { class_id: "class_id" } : {},
-                {
-                    date: {
-                        $gte: new Date(startDate),
-                        $lte: new Date(endDate)
-                    }
-                }
-            ]
-        };
-
-        const attendanceData = await Attendance.aggregate([
-            {
-                $match: matchStage
-            },
-            { $unwind: "$records" },
-            {
-                $group: {
-                    _id: "$date",
-                    presentCount: {
-                        $sum: { $cond: [{ $eq: ["$records.is_present", true] }, 1, 0] }
-                    },
-                    absentCount: {
-                        $sum: { $cond: [{ $eq: ["$records.is_present", false] }, 1, 0] }
-                    }
-                }
-            },
-            {
-                $project: {
-                    _id: 0,
-                    date: '$_id',
-                    presentCount: '$presentCount',
-                    absentCount: '$absentCount'
-                }
-            },
-            { $sort: { date: 1 } }
-        ]);
-
-        // res.json({ attenInfo: attendanceData });
-        //   res.json({ "hi": "hello" });
-        // return;
-
-        // const classId = class_id;
-
-        // Get attendance count function
-        const getAttendanceCount = async (classId, startDate, endDate) => {
-            try {
-                const attendances = await Attendance.find({
-                    class_id: classId,
-                    date: { $gte: new Date(startDate), $lte: new Date(endDate) }
-                });
-
-                const attendanceCount = {};
-                let tot = 0;
-
-                attendances.forEach(attendance => {
-                    attendance.records.forEach(record => {
-                        const { rollNumber, is_present } = record;
-                        if (!attendanceCount[rollNumber]) {
-                            attendanceCount[rollNumber] = 0;
-                        }
-                        if (is_present) {
-                            attendanceCount[rollNumber] += 1;
-                        }
-                    });
-                    tot += 1;
-                });
-
-                return { tot, attendanceCount };
-
-            } catch (error) {
-                console.error(error);
-                throw new Error('Error calculating attendance count');
-            }
-        };
-
-        // Get class data to include student names
-        const classData = await Class.findById(class_id);
-        if (!classData) {
-            return res.status(404).json({ error: 'Class not found', classData, "class_id": class_id });
+        if (!class_id || !startDate || !endDate) {
+            return res.status(400).json({ error: 'Missing required fields' });
         }
 
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
 
-        // Calculate attendance and format response
-        getAttendanceCount(class_id, startDate, endDate)
-            .then(({ tot, attendanceCount }) => {
-                const rec = classData.students.map(student => ({
-                    name: student.name,
-                    rollNumber: student.rollNumber,
-                    noDaysP: attendanceCount[student.rollNumber] || 0
-                }));
+        const attendanceRecords = await Attendance.find({
+            class_id,
+            date: { $gte: start, $lte: end }
+        });
 
-                res.status(200).json({ tot, rec, attendanceData });
-                // res.status(200).json({ tot, rec });
-            })
-            .catch(error => {
-                console.error(error);
-                res.status(500).json({ error: 'Error calculating attendance report' });
+        let report = {};
+        let totalDays = attendanceRecords.length;
+
+        attendanceRecords.forEach(record => {
+            record.records.forEach((present, rollNumber) => {
+              if (!report[rollNumber]) {
+                report[rollNumber] = { totalDays, presentCount: 0 };
+              }
+              if (present) {
+                report[rollNumber].presentCount++;
+              }
             });
-
-    } catch (err) {
-        console.log("Error in getReport", err.message);
-        res.status(500).send(err.message);
+          });
+      
+          res.json({ class_id, totalDays, report });
+    } catch (error) {
+        res.status(500).json({ error: 'Server error' });
     }
+
 };
 
 

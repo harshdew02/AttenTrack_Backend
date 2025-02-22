@@ -8,11 +8,11 @@ router.get('/', (req, res) => {
     res.send('route frome class');
 })
 
-router.post('/create-class', CreateClass);
-
-router.delete('/remove/:classId', DeletClass);
-
-router.get('/getList/:class_id', GetList);
+// done start
+router.post('/create-class', CreateClass); // done
+router.delete('/remove/:classId', DeletClass); //done
+router.get('/getList/:class_id', GetList); //done
+//  done end
 
 module.exports = router
 
