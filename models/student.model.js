@@ -1,4 +1,6 @@
 const mongoose = require('mongoose');
+const bcrypt = require("bcryptjs");
+const { use } = require('../routes/teacher.routes');
 
 const studentSchema = new mongoose.Schema({
   email: {
@@ -36,6 +38,23 @@ const studentSchema = new mongoose.Schema({
     ref: 'Class'
   }]
 }, { timestamps: true });
+
+studentSchema.pre('save',async function (next) {
+
+  const student = this;
+  
+  if (!student.isModified('password'))
+    return next();
+  try {
+    const saltRound = await bcrypt.genSalt(process.env.SALT_ROUND);
+    const hash_password = await bcrypt.hash(student.password, saltRound);
+    student.password = hash_password;
+    next();
+  } catch (error) {
+    next(error);
+  }
+
+});
 
 studentSchema.index({ batch: 1, rollNumber: 1 });
 

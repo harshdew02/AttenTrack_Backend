@@ -16,9 +16,9 @@ router.post('/verify-otp', AuthOTPVerify, VerifyOTP)
 router.post('/login', TeacherLogin);
 router.get('/token-login', TokentLoginTeacher, TeacherLogin)
 router.get('/classes-info/:teacher_id', GetClasses);
+router.post('/records', getReport)
 // done end
 
-router.post('/records', getReport)
 
 // const classId = '67306adc9ad2c0c37c4428ba';
 // const startDate = '2024-10-01';

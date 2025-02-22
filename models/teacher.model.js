@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const bcrypt = require("bcryptjs");
 const Schema = mongoose.Schema;
 
 // Define the teacher schema
@@ -33,6 +34,22 @@ const teacherSchema = new mongoose.Schema({
         index: true // Index for efficient course-based lookups
     }]
 }, { timestamps: true });
+
+// Hash the password before saving
+teacherSchema.pre('save', async function (next) {
+
+    const teacher = this;
+    if (!teacher.isModified('password'))
+        return next();
+    try {
+        const saltRound = await bcrypt.genSalt(process.env.SALT_ROUND);
+        const hash_password = await bcrypt.hash(teacher.password, saltRound);
+        teacher.password = hash_password;
+        next();
+    } catch (error) {
+        next(error);
+    }
+});
 
 // Compound index for department & email (common query pattern)
 teacherSchema.index({ department: 1, email: 1 });
