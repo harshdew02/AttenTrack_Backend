@@ -11,16 +11,12 @@ const attendanceSchema = new Schema({
     type: Date,
     required: true
   },
-  records: [{
-    rollNumber: {
-      type: String,
-      required: true
-    },
-    is_present: {
-      type: Boolean,
-      required: true
-    }
-  }]
-});
+  records: {
+    type: Map,
+    of: Boolean, // Roll number -> true/false (present/absent)
+    required: true
+  }
+}, { timestamps: true });
+
 
 module.exports = mongoose.model('Attendance', attendanceSchema);
