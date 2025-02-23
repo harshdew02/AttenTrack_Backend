@@ -5,6 +5,7 @@ const Teacher = require('../models/teacher.model.js');
 const { generateToken } = require("../services/token.service.js");
 const bcrypt = require('bcryptjs');
 const { comparePassword } = require("../services/encrypt.service.js");
+const { SendOTP } = require("../services/mail.service.js");
 
 // const SendOTP = async (stud, email) => {
 //     res.send('route frome student');
@@ -58,6 +59,12 @@ const StudentRegistration = async (req, res) => {
                 const otp = Math.floor(100000 + Math.random() * 900000);
 
                 // SendOTP(student, email, otp);
+                const send = {
+                    name: student.fullName,
+                    rollNumber: student.rollNumber,
+                }
+
+                await SendOTP(email, otp, send);
 
                 return res.status(200).json(
                     {
