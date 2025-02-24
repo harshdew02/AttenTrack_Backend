@@ -5,6 +5,7 @@ const Teacher = require('../models/teacher.model.js');
 const { generateToken } = require("../services/token.service.js");
 const bcrypt = require('bcryptjs');
 const { comparePassword } = require("../services/encrypt.service.js");
+const { SendOTP } = require("../services/mail.service.js");
 
 // const SendOTP = async (stud, email) => {
 //     res.send('route frome student');
@@ -58,6 +59,12 @@ const StudentRegistration = async (req, res) => {
                 const otp = Math.floor(100000 + Math.random() * 900000);
 
                 // SendOTP(student, email, otp);
+                const send = {
+                    name: student.fullName,
+                    rollNumber: student.rollNumber,
+                }
+
+                await SendOTP(email, otp, send);
 
                 return res.status(200).json(
                     {
@@ -94,7 +101,7 @@ const StudentLogin = async (req, res) => {
         }
 
         const isMatch = await bcrypt.compare(password, student.password);
-        
+
         if (!isMatch) {
             return res.status(400).json({ error: "Invalid password" })
         }
@@ -163,41 +170,65 @@ const EnrolledClasses = async (req, res) => {
 }
 
 const GetAttandaces = async (req, res) => {
-    const { class_id, rollNumber } = req.query;
     try {
-        // Query attendance by class_id and rollNumber
-        const attendanceRecords = await Attendance.find({
-            class_id,
-            'records.rollNumber': rollNumber
-        }).select('date records.$'); // Only select dates and matching record
+        const { class_id, rollNumber } = req.body;
 
-        // Transform the result to only include date and is_present
-        const result = attendanceRecords.map(record => {
-            return {
-                date: record.date,
-                is_present: record.records[0].is_present
-            };
+        if (!class_id || !rollNumber) {
+            return res.status(400).json({ message: 'class_id and rollNumber are required' });
+        }
+
+        const totalClasses = await Attendance.countDocuments({ class_id });
+        const presentClasses = await Attendance.countDocuments({
+            class_id,
+            [`records.${rollNumber}`]: true,
         });
 
-        const classData = await Class.findById(class_id);
-        // console.log(classData);
+        const attendanceRecords = await Attendance.find({ class_id }, 'date records');
+        const attendanceMap = {};
 
-        if (!classData) {
-            return res.status(404).json({ message: 'Class not found' });
-        }
-        // const teacherdata = await Teacher.findById(teacher, { fullName: 1 });
+        attendanceRecords.forEach(record => {
+            const formattedDate = record.date.toISOString().split('T')[0];
+            attendanceMap[formattedDate] = record.records.get(rollNumber) || false;
+        });
 
-        const teacherdata = await Teacher.findById(classData.teacher, { fullName: 1 });
-
-        if (!teacherdata) {
-            return res.status(404).json({ message: 'Teacher not found' });
-        }
-
-        res.json({ "teacher": teacherdata.fullName, res: result });
+        res.json({ totalClasses, presentClasses, attendanceMap });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: 'Server error', error });
     }
 }
 
-module.exports = { StudentRegistration, StudentLogin, EnrolledClasses, GetAttandaces, VerifyOTP };
+const GetAllAttendance = async (req, res) => {
+    try {
+        const { rollNumber } = req.params;
+
+        if (!rollNumber) {
+            return res.status(400).json({ message: 'rollNumber is required' });
+        }
+
+        const student = await Student.findOne({ rollNumber });
+
+        if (!student) {
+            return res.status(404).json({ message: 'Student not found' });
+        }
+
+        const attendanceSummary = {};
+
+        for (const class_id of student.courses) {
+
+            const totalClasses = await Attendance.countDocuments({ class_id });
+            const presentClasses = await Attendance.countDocuments({
+                class_id,
+                [`records.${rollNumber}`]: true,
+            });
+
+            attendanceSummary[class_id] = { total_days: totalClasses, attended: presentClasses };
+        }
+
+        res.json(attendanceSummary);
+    } catch (error) {
+        res.status(500).json({ message: 'Server error', error });
+    }
+}
+
+module.exports = { StudentRegistration, StudentLogin, EnrolledClasses, GetAttandaces, VerifyOTP, GetAllAttendance };
 
