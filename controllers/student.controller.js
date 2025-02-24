@@ -101,7 +101,7 @@ const StudentLogin = async (req, res) => {
         }
 
         const isMatch = await bcrypt.compare(password, student.password);
-        
+
         if (!isMatch) {
             return res.status(400).json({ error: "Invalid password" })
         }
@@ -172,30 +172,63 @@ const EnrolledClasses = async (req, res) => {
 const GetAttandaces = async (req, res) => {
     try {
         const { class_id, rollNumber } = req.body;
-    
+
         if (!class_id || !rollNumber) {
-          return res.status(400).json({ message: 'class_id and rollNumber are required' });
+            return res.status(400).json({ message: 'class_id and rollNumber are required' });
         }
-    
+
         const totalClasses = await Attendance.countDocuments({ class_id });
         const presentClasses = await Attendance.countDocuments({
-          class_id,
-          [`records.${rollNumber}`]: true,
+            class_id,
+            [`records.${rollNumber}`]: true,
         });
-    
+
         const attendanceRecords = await Attendance.find({ class_id }, 'date records');
         const attendanceMap = {};
-    
+
         attendanceRecords.forEach(record => {
-          const formattedDate = record.date.toISOString().split('T')[0];
-          attendanceMap[formattedDate] = record.records.get(rollNumber) || false;
+            const formattedDate = record.date.toISOString().split('T')[0];
+            attendanceMap[formattedDate] = record.records.get(rollNumber) || false;
         });
-    
+
         res.json({ totalClasses, presentClasses, attendanceMap });
-      } catch (error) {
+    } catch (error) {
         res.status(500).json({ message: 'Server error', error });
-      }
+    }
 }
 
-module.exports = { StudentRegistration, StudentLogin, EnrolledClasses, GetAttandaces, VerifyOTP };
+const GetAllAttendance = async (req, res) => {
+    try {
+        const { rollNumber } = req.params;
+
+        if (!rollNumber) {
+            return res.status(400).json({ message: 'rollNumber is required' });
+        }
+
+        const student = await Student.findOne({ rollNumber });
+
+        if (!student) {
+            return res.status(404).json({ message: 'Student not found' });
+        }
+
+        const attendanceSummary = {};
+
+        for (const class_id of student.courses) {
+
+            const totalClasses = await Attendance.countDocuments({ class_id });
+            const presentClasses = await Attendance.countDocuments({
+                class_id,
+                [`records.${rollNumber}`]: true,
+            });
+
+            attendanceSummary[class_id] = { total_days: totalClasses, attended: presentClasses };
+        }
+
+        res.json(attendanceSummary);
+    } catch (error) {
+        res.status(500).json({ message: 'Server error', error });
+    }
+}
+
+module.exports = { StudentRegistration, StudentLogin, EnrolledClasses, GetAttandaces, VerifyOTP, GetAllAttendance };
 
