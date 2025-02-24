@@ -170,40 +170,31 @@ const EnrolledClasses = async (req, res) => {
 }
 
 const GetAttandaces = async (req, res) => {
-    const { class_id, rollNumber } = req.query;
     try {
-        // Query attendance by class_id and rollNumber
-        const attendanceRecords = await Attendance.find({
-            class_id,
-            'records.rollNumber': rollNumber
-        }).select('date records.$'); // Only select dates and matching record
-
-        // Transform the result to only include date and is_present
-        const result = attendanceRecords.map(record => {
-            return {
-                date: record.date,
-                is_present: record.records[0].is_present
-            };
+        const { class_id, rollNumber } = req.body;
+    
+        if (!class_id || !rollNumber) {
+          return res.status(400).json({ message: 'class_id and rollNumber are required' });
+        }
+    
+        const totalClasses = await Attendance.countDocuments({ class_id });
+        const presentClasses = await Attendance.countDocuments({
+          class_id,
+          [`records.${rollNumber}`]: true,
         });
-
-        const classData = await Class.findById(class_id);
-        // console.log(classData);
-
-        if (!classData) {
-            return res.status(404).json({ message: 'Class not found' });
-        }
-        // const teacherdata = await Teacher.findById(teacher, { fullName: 1 });
-
-        const teacherdata = await Teacher.findById(classData.teacher, { fullName: 1 });
-
-        if (!teacherdata) {
-            return res.status(404).json({ message: 'Teacher not found' });
-        }
-
-        res.json({ "teacher": teacherdata.fullName, res: result });
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
+    
+        const attendanceRecords = await Attendance.find({ class_id }, 'date records');
+        const attendanceMap = {};
+    
+        attendanceRecords.forEach(record => {
+          const formattedDate = record.date.toISOString().split('T')[0];
+          attendanceMap[formattedDate] = record.records.get(rollNumber) || false;
+        });
+    
+        res.json({ totalClasses, presentClasses, attendanceMap });
+      } catch (error) {
+        res.status(500).json({ message: 'Server error', error });
+      }
 }
 
 module.exports = { StudentRegistration, StudentLogin, EnrolledClasses, GetAttandaces, VerifyOTP };
