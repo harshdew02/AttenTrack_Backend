@@ -2,6 +2,7 @@ const Teacher = require("../models/teacher.model.js");
 const Class = require('../models/class.model.js');
 const Attendance = require('../models/attendance.model.js');
 const { generateToken } = require("../services/token.service.js");
+const bcrypt = require("bcryptjs");
 
 
 const VerifyOTP = async (req, res) => {
