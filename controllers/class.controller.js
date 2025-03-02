@@ -58,6 +58,7 @@ const CreateClass = async (req, res) => {
                         await newStudent.save();
                         newClass.studentsId.push(newStudent._id);
                     } else {
+                        await Class.deleteOne({ classname });
                         return res.status(400).json({ error: "Student not created" });
                     }
                 }
@@ -76,14 +77,17 @@ const CreateClass = async (req, res) => {
                 }
                 return res.status(201).json(body);
             } else {
+                await Class.deleteOne({ classname });
                 return res.status(400).json({ error: "Class not created" });
             }
 
         } else {
+            await Class.deleteOne({ classname });
             return res.status(400).json({ error: "Class not created" });
         }
 
     } catch (err) {
+        await Class.deleteOne({ classname });
         console.log(err, "hi");
         res.status(500).send(err.message);
     }
