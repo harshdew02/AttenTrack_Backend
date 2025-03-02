@@ -16,7 +16,7 @@ const transporter = nodemailer.createTransport({
 const SendOTP = async (email, otp, student) => {
     try {
 
-        email = "roser62635@gmail.com";
+        // email = "roser62635@gmail.com";
 
         let info = await transporter.sendMail({
             from: '"Startup Bubbles" <startupbubbles4@gmail.com>', // sender address
