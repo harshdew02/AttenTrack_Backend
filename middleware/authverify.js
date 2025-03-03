@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const Student = require('../models/student.model');
+// const Student = require('../models/student.model');
 const Teacher = require('../models/teacher.model');
 
 
@@ -23,23 +23,34 @@ const AuthOTPVerify = async (req, res, next) => {
 
 const TokentLogin = async (req, res, next) => {
     try {
+        
+        const Student = require('../models/student.model');
+
         const token = req.headers.authorization?.split(" ")[1];
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        console.log("token login",decoded);
 
-        const stud = await Student.findById(decoded.id);
+        console.log("token login:",decoded);
 
-        console.log(stud);
+        const student = await Student.findById(decoded.id);
 
-        console.log('fd', stud.rollNumber, stud.password);
+        if(!student){
+            return res.status(401).json({ error: 'Unauthorized access' });
+        }
 
-        req.body.rollNumber = stud.rollNumber;
-        req.body.password = stud.password;
+        return res.status(201).json(
+            {
+                id: student._id,
+                email: student.email,
+                fullName: student.fullName,
+                rollNumber: student.rollNumber,
+                password: student.password,
+                batch: student.batch,
+                coursesId: student.courses,
+            }
+        );
 
-        console.log(req);
-
-        next();
     } catch (error) {
+        console.log(error.message);
         res.status(401).json({ error: error.message });
     }
 }
@@ -49,16 +60,24 @@ const TokentLoginTeacher = async (req, res, next) => {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         console.log("token login",decoded);
 
-        const teach = await Teacher.findById(decoded.id);
+        const teacher = await Teacher.findById(decoded.id);
 
-        console.log(teach);
+        console.log(teacher);
 
-        req.body.email = teach.email;
-        req.body.password = teach.password;
+        if(!teacher){
+            return res.status(401).json({ error: 'Unauthorized access' });
+        }
 
-        console.log(req);
-
-        next();
+        return res.status(200).json(
+            {
+                id: teacher._id,
+                email: teacher.email,
+                fullName: teacher.fullName,
+                password: teacher.password,
+                department: teacher.department,
+                coursesId: teacher.courses,
+            }
+        );
     } catch (error) {
         res.status(401).json({ error: error.message });
     }
