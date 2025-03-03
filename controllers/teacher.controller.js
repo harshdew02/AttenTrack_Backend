@@ -12,6 +12,8 @@ const VerifyOTP = async (req, res) => {
 
         const teacher = await Teacher.findOne({ email })
 
+        console.log(teacher);
+
         if (teacher) {
             teacher.password = password;
 

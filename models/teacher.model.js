@@ -42,7 +42,7 @@ teacherSchema.pre('save', async function (next) {
     if (!teacher.isModified('password'))
         return next();
     try {
-        const saltRound = await bcrypt.genSalt(process.env.SALT_ROUND);
+        const saltRound = await bcrypt.genSalt(parseInt(process.env.SALT_ROUND));
         const hash_password = await bcrypt.hash(teacher.password, saltRound);
         teacher.password = hash_password;
         next();
