@@ -3,6 +3,7 @@ const Class = require('../models/class.model.js');
 const Attendance = require('../models/attendance.model.js');
 const { generateToken } = require("../services/token.service.js");
 const bcrypt = require("bcryptjs");
+const { SendOTP } = require("../services/mail.service.js");
 
 
 const VerifyOTP = async (req, res) => {
@@ -51,7 +52,12 @@ const TeacherRegistration = async (req, res) => {
 
                 const otp = Math.floor(100000 + Math.random() * 900000);
 
-                // SendOTP(student, email, otp);
+                const send = {
+                    name: teacher.fullName,
+                    email: teacher.email,
+                }
+
+                await SendOTP(email, otp, send);
 
                 return res.status(200).json(
                     {

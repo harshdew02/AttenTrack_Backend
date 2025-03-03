@@ -31,6 +31,8 @@ const TokentLogin = async (req, res, next) => {
 
         console.log(stud);
 
+        console.log('fd', stud.rollNumber, stud.password);
+
         req.body.rollNumber = stud.rollNumber;
         req.body.password = stud.password;
 
