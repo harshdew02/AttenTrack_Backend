@@ -134,9 +134,9 @@ const GetList = async (req, res) => {
 
 const DeletClass = async (req, res) => {
     try {
-        const { ClassId } = req.params;
+        const { classId } = req.params;
 
-        const deletedClass = await Class.findByIdAndDelete(ClassId);
+        const deletedClass = await Class.findByIdAndDelete(classId);
 
         if (!deletedClass) {
             return res.status(404).json({ message: 'Class not found' });
