@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Attendance = require('../models/attendance.model.js');
 
-const { TeacherRegistration, TeacherLogin, getReport, VerifyOTP, GetClasses, ForgotPassword } = require('../controllers/teacher.controller.js');
+const { TeacherRegistration, TeacherLogin, getReport, VerifyOTP, GetClasses, ForgotPassword, ChangePassword } = require('../controllers/teacher.controller.js');
 const { get } = require('mongoose');
 const { AuthOTPVerify, TokentLoginTeacher } = require('../middleware/authverify.js');
 
@@ -18,11 +18,5 @@ router.get('/token-login', TokentLoginTeacher, TeacherLogin)
 router.get('/classes-info/:teacher_id', GetClasses);
 router.post('/records', getReport)
 router.post('/forgot', ForgotPassword)
-// done end
-
-
-// const classId = '67306adc9ad2c0c37c4428ba';
-// const startDate = '2024-10-01';
-// const endDate = '2024-10-10';
-
+router.post('/change', ChangePassword)
 module.exports = router

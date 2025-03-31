@@ -22,7 +22,6 @@ const CreateAttendance = async (req, res) => {
                 message: updatedAttendance ? "Attendance updated" : "Attendance created",
                 attendance: updatedAttendance
             });
-            // return res.status(409).json({ message: "Attendance already exists for this class and date" });
         }
 
         const newAttendance = new Attendance({
@@ -42,14 +41,6 @@ const CreateAttendance = async (req, res) => {
         } else {
             return res.status(400).json({ message: "Attendance not created" });
         }
-
-        // newAttendance.records.forEach(async (record) => {
-        //     const student = await Student.findOne({ rollNumber: record.rollNumber });
-        //     if (student) {
-        //         student.attendance.push(newAttendance._id);
-        //         await student.save();
-        //     }
-        // })
 
     } catch (error) {
         res.status(409).json({ message: error.message });

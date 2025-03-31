@@ -6,7 +6,7 @@ const studentSchema = new mongoose.Schema({
     type: String,
     required: true,
     unique: true,
-    match: [/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/, 'Please enter a valid email address'],
+    match: [/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/, 'Please enter a valid email address'],
     trim: true,
     lowercase: true,
     index: true

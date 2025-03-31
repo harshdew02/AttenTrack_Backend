@@ -21,9 +21,8 @@ const CreateSheet = async (req, res) => {
         }else{
             return res.status(400).json({ error: "Sheet not created" });
         }
-        // res.status(201).json(newSheet);
 
-    }catch (err) {
+    } catch (err) {
         console.log("Error in CreateSheet", err.message);
         console.log(err);
         res.status(500).send(err.message);
