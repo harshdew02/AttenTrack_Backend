@@ -4,12 +4,7 @@ const Attendance = require("../models/attendance.model.js");
 const Teacher = require("../models/teacher.model.js");
 const { generateToken } = require("../services/token.service.js");
 const bcrypt = require("bcryptjs");
-const { comparePassword } = require("../services/encrypt.service.js");
 const { SendOTP } = require("../services/mail.service.js");
-
-// const SendOTP = async (stud, email) => {
-//     res.send('route frome student');
-// }
 
 const ForgotPassword = async (req, res) => {
   try {
@@ -32,7 +27,7 @@ const ForgotPassword = async (req, res) => {
 
 const VerifyOTP = async (req, res) => {
   try {
-    const { email, password, otp } = req.body;
+    const { email, password } = req.body;
 
     const student = await Student.findOne({ email });
 
@@ -75,7 +70,6 @@ const StudentRegistration = async (req, res) => {
       if (await bcrypt.compare("any", student.password)) {
         const otp = Math.floor(100000 + Math.random() * 900000);
 
-        // SendOTP(student, email, otp);
         const send = {
           name: student.fullName,
           rollNumber: student.rollNumber,
@@ -108,6 +102,31 @@ const StudentRegistration = async (req, res) => {
     res.status(500).send(err.message);
   }
 };
+
+const ChangePassword = async (req, res) => {
+  try {
+    const { rollNumber, oldPassword, newPassword } = req.body;
+    const student = await Student.findOne({ rollNumber });
+
+    if (!student) {
+      return res.status(400).json({ error: "Student not found" });
+    }
+
+    const isMatch = await bcrypt.compare(oldPassword, student.password);
+
+    if (!isMatch) {
+      return res.status(400).json({ error: "Invalid password" });
+    }
+
+    student.password = newPassword;
+    await student.save();
+
+    res.status(200).json({ message: "Password changed successfully" });
+  } catch (err) {
+    console.error("Error changing password:", err.message);
+    res.status(500).json({ error: err.message });
+  }
+}
 
 const StudentLogin = async (req, res) => {
   try {
@@ -261,5 +280,6 @@ module.exports = {
   GetAttandaces,
   VerifyOTP,
   GetAllAttendance,
-  ForgotPassword
+  ForgotPassword,
+  ChangePassword
 };
