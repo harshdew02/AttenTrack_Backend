@@ -1,9 +1,9 @@
 const Student = require("../models/student.model.js");
-const Class = require('../models/class.model.js');
-const Attendance = require('../models/attendance.model.js');
-const Teacher = require('../models/teacher.model.js');
+const Class = require("../models/class.model.js");
+const Attendance = require("../models/attendance.model.js");
+const Teacher = require("../models/teacher.model.js");
 const { generateToken } = require("../services/token.service.js");
-const bcrypt = require('bcryptjs');
+const bcrypt = require("bcryptjs");
 const { comparePassword } = require("../services/encrypt.service.js");
 const { SendOTP } = require("../services/mail.service.js");
 
@@ -11,224 +11,255 @@ const { SendOTP } = require("../services/mail.service.js");
 //     res.send('route frome student');
 // }
 
-const VerifyOTP = async (req, res) => {
-    try {
-        const { email, password, otp } = req.body
+const ForgotPassword = async (req, res) => {
+  try {
+    const { rollNumber } = req.body;
+    const student = await Student.findOne({ rollNumber });
 
-        const student = await Student.findOne({ email })
-
-        if (student) {
-            student.password = password;
-
-            await student.save();
-
-            let token = generateToken({ id: student._id });
-
-            return res.status(201).json(
-                {
-                    id: student._id,
-                    email: student.email,
-                    fullName: student.fullName,
-                    rollNumber: student.rollNumber,
-                    password: student.password,
-                    batch: student.batch,
-                    coursesId: student.courses,
-                    token: token
-                }
-            );
-        } else {
-            return res.status(404).json({ error: "Not found please tell your teacher to add in sheet" })
-        }
-
-    } catch (err) {
-        console.log("Error in StudentRegistration", err.message);
-        console.log(err);
-        res.status(500).send(err.message);
+    if (!student) {
+      return res.status(400).json({ error: "Student not found" });
     }
-}
+
+    student.password = "any";
+
+    await student.save();
+    res.status(200).json({ message: "Password resetted successfully" });
+  } catch (err) {
+    console.error("Error updating password:", err.message);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+const VerifyOTP = async (req, res) => {
+  try {
+    const { email, password, otp } = req.body;
+
+    const student = await Student.findOne({ email });
+
+    if (student) {
+      student.password = password;
+
+      await student.save();
+
+      let token = generateToken({ id: student._id });
+
+      return res.status(201).json({
+        id: student._id,
+        email: student.email,
+        fullName: student.fullName,
+        rollNumber: student.rollNumber,
+        password: student.password,
+        batch: student.batch,
+        coursesId: student.courses,
+        token: token,
+      });
+    } else {
+      return res
+        .status(404)
+        .json({ error: "Not found please tell your teacher to add in sheet" });
+    }
+  } catch (err) {
+    console.log("Error in StudentRegistration", err.message);
+    console.log(err);
+    res.status(500).send(err.message);
+  }
+};
 
 const StudentRegistration = async (req, res) => {
-    try {
-        const { email } = req.body
+  try {
+    const { email } = req.body;
 
-        const student = await Student.findOne({ email })
+    const student = await Student.findOne({ email });
 
-        if (student) {
-            if (await bcrypt.compare("any", student.password)) {
+    if (student) {
+      if (await bcrypt.compare("any", student.password)) {
+        const otp = Math.floor(100000 + Math.random() * 900000);
 
-                const otp = Math.floor(100000 + Math.random() * 900000);
+        // SendOTP(student, email, otp);
+        const send = {
+          name: student.fullName,
+          rollNumber: student.rollNumber,
+        };
 
-                // SendOTP(student, email, otp);
-                const send = {
-                    name: student.fullName,
-                    rollNumber: student.rollNumber,
-                }
+        await SendOTP(email, otp, send);
 
-                await SendOTP(email, otp, send);
-
-                return res.status(200).json(
-                    {
-                        otpToken: generateToken({ otp: otp }),
-                        tempOtp: otp
-                    }
-                );
-            } else {
-                return res.status(403).json({ error: "Student already registered please login or do forget password" })
-            }
-        } else {
-            return res.status(404).json({ error: "Not found please tell your teacher to add in Class sheet" })
-        }
-
-    } catch (err) {
-        console.log("Error in StudentRegistration", err.message);
-        console.log(err);
-        res.status(500).send(err.message);
+        return res.status(200).json({
+          otpToken: generateToken({ otp: otp }),
+          tempOtp: otp,
+        });
+      } else {
+        return res
+          .status(403)
+          .json({
+            error:
+              "Student already registered please login or do forget password",
+          });
+      }
+    } else {
+      return res
+        .status(404)
+        .json({
+          error: "Not found please tell your teacher to add in Class sheet",
+        });
     }
-}
-
+  } catch (err) {
+    console.log("Error in StudentRegistration", err.message);
+    console.log(err);
+    res.status(500).send(err.message);
+  }
+};
 
 const StudentLogin = async (req, res) => {
-    try {
-        const { rollNumber, password } = req.body
-        const student = await Student.findOne({ rollNumber })
+  try {
+    const { rollNumber, password } = req.body;
+    const student = await Student.findOne({ rollNumber });
 
-        if (!student) {
-            return res.status(400).json({ error: "Student not found" })
-        }
-
-        if (await bcrypt.compare("any", student.password)) {
-            return res.status(400).json({ error: "Please do sing up first" })
-        }
-
-        const isMatch = await bcrypt.compare(password, student.password);
-
-        if (!isMatch) {
-            return res.status(400).json({ error: "Invalid password" })
-        }
-
-        let token = generateToken({ id: student._id });
-
-        return res.status(201).json(
-            {
-                id: student._id,
-                email: student.email,
-                fullName: student.fullName,
-                rollNumber: student.rollNumber,
-                password: student.password,
-                batch: student.batch,
-                coursesId: student.courses,
-                token: token
-            }
-        );
-
-    } catch (err) {
-        console.log("Error in StudentLogin", err.message);
-        console.log(err);
-        res.status(500).send(err.message);
+    if (!student) {
+      return res.status(400).json({ error: "Student not found" });
     }
-}
+
+    if (await bcrypt.compare("any", student.password)) {
+      return res.status(400).json({ error: "Please do sing up first" });
+    }
+
+    const isMatch = await bcrypt.compare(password, student.password);
+
+    if (!isMatch) {
+      return res.status(400).json({ error: "Invalid password" });
+    }
+
+    let token = generateToken({ id: student._id });
+
+    return res.status(201).json({
+      id: student._id,
+      email: student.email,
+      fullName: student.fullName,
+      rollNumber: student.rollNumber,
+      password: student.password,
+      batch: student.batch,
+      coursesId: student.courses,
+      token: token,
+    });
+  } catch (err) {
+    console.log("Error in StudentLogin", err.message);
+    console.log(err);
+    res.status(500).send(err.message);
+  }
+};
 
 const EnrolledClasses = async (req, res) => {
+  try {
+    const studentdata = await Student.findById(req.params.student_id);
 
-    try {
-        const studentdata = await Student.findById(req.params.student_id);
-
-        if (!studentdata) {
-            return res.status(404).json({ message: 'Student not found' });
-        }
-
-        let classes = [];
-
-        for (const classId of studentdata.courses) {
-            const classData = await Class.findById(classId);
-            if (classData) {
-                let classInfo = {
-                    class_id: classData._id,
-                    classname: classData.classname,
-                    batch: classData.batch,
-                    semester: classData.semester,
-                    department: classData.department,
-                    student_count: classData.studentsId.length
-                }
-                classes.push(classInfo);
-            }
-        }
-
-        let body = {
-            student_id: studentdata._id,
-            fullName: studentdata.fullName,
-            rollNumber: studentdata.rollNumber,
-            email: studentdata.email,
-            classes: classes,
-        }
-
-        res.json(body);
-
-    } catch (error) {
-        res.status(500).json({ message: 'Server error', error });
+    if (!studentdata) {
+      return res.status(404).json({ message: "Student not found" });
     }
-}
+
+    let classes = [];
+
+    for (const classId of studentdata.courses) {
+      const classData = await Class.findById(classId);
+      if (classData) {
+        let classInfo = {
+          class_id: classData._id,
+          classname: classData.classname,
+          batch: classData.batch,
+          semester: classData.semester,
+          department: classData.department,
+          student_count: classData.studentsId.length,
+        };
+        classes.push(classInfo);
+      }
+    }
+
+    let body = {
+      student_id: studentdata._id,
+      fullName: studentdata.fullName,
+      rollNumber: studentdata.rollNumber,
+      email: studentdata.email,
+      classes: classes,
+    };
+
+    res.json(body);
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error });
+  }
+};
 
 const GetAttandaces = async (req, res) => {
-    try {
-        const { class_id, rollNumber } = req.body;
+  try {
+    const { class_id, rollNumber } = req.body;
 
-        if (!class_id || !rollNumber) {
-            return res.status(400).json({ message: 'class_id and rollNumber are required' });
-        }
-
-        const totalClasses = await Attendance.countDocuments({ class_id });
-        const presentClasses = await Attendance.countDocuments({
-            class_id,
-            [`records.${rollNumber}`]: true,
-        });
-
-        const attendanceRecords = await Attendance.find({ class_id }, 'date records');
-        const attendanceMap = {};
-
-        attendanceRecords.forEach(record => {
-            const formattedDate = record.date.toISOString().split('T')[0];
-            attendanceMap[formattedDate] = record.records.get(rollNumber) || false;
-        });
-
-        res.json({ totalClasses, presentClasses, attendanceMap });
-    } catch (error) {
-        res.status(500).json({ message: 'Server error', error });
+    if (!class_id || !rollNumber) {
+      return res
+        .status(400)
+        .json({ message: "class_id and rollNumber are required" });
     }
-}
+
+    const totalClasses = await Attendance.countDocuments({ class_id });
+    const presentClasses = await Attendance.countDocuments({
+      class_id,
+      [`records.${rollNumber}`]: true,
+    });
+
+    const attendanceRecords = await Attendance.find(
+      { class_id },
+      "date records"
+    );
+    const attendanceMap = {};
+
+    attendanceRecords.forEach((record) => {
+      const formattedDate = record.date.toISOString().split("T")[0];
+      attendanceMap[formattedDate] = record.records.get(rollNumber) || false;
+    });
+
+    res.json({ totalClasses, presentClasses, attendanceMap });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error });
+  }
+};
 
 const GetAllAttendance = async (req, res) => {
-    try {
-        const { rollNumber } = req.params;
+  try {
+    const { rollNumber } = req.params;
 
-        if (!rollNumber) {
-            return res.status(400).json({ message: 'rollNumber is required' });
-        }
-
-        const student = await Student.findOne({ rollNumber });
-
-        if (!student) {
-            return res.status(404).json({ message: 'Student not found' });
-        }
-
-        const attendanceSummary = {};
-
-        for (const class_id of student.courses) {
-
-            const totalClasses = await Attendance.countDocuments({ class_id });
-            const presentClasses = await Attendance.countDocuments({
-                class_id,
-                [`records.${rollNumber}`]: true,
-            });
-
-            attendanceSummary[class_id] = { total_days: totalClasses, attended: presentClasses };
-        }
-
-        res.json(attendanceSummary);
-    } catch (error) {
-        res.status(500).json({ message: 'Server error', error });
+    if (!rollNumber) {
+      return res.status(400).json({ message: "rollNumber is required" });
     }
-}
 
-module.exports = { StudentRegistration, StudentLogin, EnrolledClasses, GetAttandaces, VerifyOTP, GetAllAttendance };
+    const student = await Student.findOne({ rollNumber });
 
+    if (!student) {
+      return res.status(404).json({ message: "Student not found" });
+    }
+
+    const attendanceSummary = {};
+
+    for (const class_id of student.courses) {
+      const totalClasses = await Attendance.countDocuments({ class_id });
+      const presentClasses = await Attendance.countDocuments({
+        class_id,
+        [`records.${rollNumber}`]: true,
+      });
+
+      attendanceSummary[class_id] = {
+        total_days: totalClasses,
+        attended: presentClasses,
+      };
+    }
+
+    res.json(attendanceSummary);
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error });
+  }
+};
+
+module.exports = {
+  StudentRegistration,
+  StudentLogin,
+  EnrolledClasses,
+  GetAttandaces,
+  VerifyOTP,
+  GetAllAttendance,
+  ForgotPassword
+};

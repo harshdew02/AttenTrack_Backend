@@ -1,5 +1,5 @@
 const express = require('express');
-const { StudentRegistration, StudentLogin, EnrolledClasses, GetAttandaces, VerifyOTP, GetAllAttendance } = require('../controllers/student.controller.js');
+const { StudentRegistration, StudentLogin, EnrolledClasses, GetAttandaces, VerifyOTP, GetAllAttendance, ForgotPassword } = require('../controllers/student.controller.js');
 const router = express.Router();
 const Attendance = require('../models/attendance.model.js');
 const Class = require('../models/class.model.js');
@@ -17,6 +17,7 @@ router.get('/token-login', TokentLogin, StudentLogin)
 router.get('/classes-info/:student_id', EnrolledClasses);
 router.post('/attendance', GetAttandaces);
 router.get('/attendance/:rollNumber', GetAllAttendance);
+router.post('/forgot', ForgotPassword);
 // done end
 
 
