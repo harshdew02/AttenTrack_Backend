@@ -85,6 +85,38 @@ const ChangePassword = async (req, res) => {
   }
 }
 
+const generateOTP = async (req, res) => {
+  try {
+    const { email } = req.body;
+    const teacher = await Teacher.findOne({ email });
+
+    if (teacher) {
+        const otp = Math.floor(100000 + Math.random() * 900000);
+
+        const send = {
+          name: teacher.fullName,
+          email: teacher.email,
+        };
+
+        await SendOTP(email, otp, send);
+
+        return res.status(200).json({
+          otpToken: generateToken({ otp: otp }),
+          tempOtp: otp,
+        });
+      
+    } else {
+      return res.status(404).json({
+        error: "Teacher not found",
+      });
+    }
+  } catch (err) {
+    console.log("Error in generating OTP", err.message);
+    console.log(err);
+    res.status(500).send(err.message);
+  }
+}
+
 const TeacherRegistration = async (req, res) => {
   try {
     const { email } = req.body;
@@ -246,5 +278,6 @@ module.exports = {
   VerifyOTP,
   GetClasses,
   ForgotPassword,
-  ChangePassword
+  ChangePassword,
+  generateOTP,
 };
