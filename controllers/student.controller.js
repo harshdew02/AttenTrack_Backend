@@ -35,7 +35,7 @@ const generateOTP = async (req, res) => {
 
         const send = {
           name: student.fullName,
-          email: student.email,
+          rollNumber: student.rollNumber,
         };
 
         await SendOTP(student.email, otp, send);
