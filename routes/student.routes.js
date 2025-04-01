@@ -12,7 +12,7 @@ router.get('/token-login', TokentLogin, StudentLogin)
 router.get('/classes-info/:student_id', EnrolledClasses);
 router.post('/attendance', GetAttandaces);
 router.get('/attendance/:rollNumber', GetAllAttendance);
-router.post('/forgot', ForgotPassword);
+router.post('/forgot',AuthOTPVerify, ForgotPassword);
 router.post('/change', ChangePassword)
 
 // done end
