@@ -25,6 +25,38 @@ const ForgotPassword = async (req, res) => {
   }
 };
 
+const generateOTP = async (req, res) => {
+  try {
+    const { rollNumber } = req.body;
+    const student = await Student.findOne({ rollNumber });
+
+    if (student) {
+        const otp = Math.floor(100000 + Math.random() * 900000);
+
+        const send = {
+          name: student.fullName,
+          email: student.email,
+        };
+
+        await SendOTP(student.email, otp, send);
+
+        return res.status(200).json({
+          otpToken: generateToken({ otp: otp }),
+          tempOtp: otp,
+        });
+      
+    } else {
+      return res.status(404).json({
+        error: "Student not found",
+      });
+    }
+  } catch (err) {
+    console.log("Error in generating OTP", err.message);
+    console.log(err);
+    res.status(500).send(err.message);
+  }
+}
+
 const VerifyOTP = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -281,5 +313,6 @@ module.exports = {
   VerifyOTP,
   GetAllAttendance,
   ForgotPassword,
-  ChangePassword
+  ChangePassword,
+  generateOTP
 };
