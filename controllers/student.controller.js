@@ -198,6 +198,29 @@ const StudentLogin = async (req, res) => {
   }
 };
 
+const UpdateStudent = async (req, res) => {
+  try {
+    const { rollNumber, branch, semester, enroll, phone } = req.body;
+    const student = await Student.findOne({ rollNumber });
+
+    if (!student) {
+      return res.status(404).json({ error: "Student not found" });
+    }
+
+    student.branch = branch || student.branch;
+    student.semester = semester || student.semester;
+    student.enroll = enroll || student.enroll;
+    student.phone = phone || student.phone;
+
+    await student.save();
+
+    res.status(200).json({ message: "Student updated successfully" });
+  } catch (err) {
+    console.error("Error updating student:", err.message);
+    res.status(500).json({ error: err.message });
+  }
+}
+
 const EnrolledClasses = async (req, res) => {
   try {
     const studentdata = await Student.findById(req.params.student_id);
@@ -314,5 +337,6 @@ module.exports = {
   GetAllAttendance,
   ForgotPassword,
   ChangePassword,
-  generateOTP
+  generateOTP,
+  UpdateStudent,
 };

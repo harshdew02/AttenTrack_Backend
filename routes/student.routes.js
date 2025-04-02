@@ -1,5 +1,5 @@
 const express = require('express');
-const { StudentRegistration, StudentLogin, EnrolledClasses, GetAttandaces, VerifyOTP, GetAllAttendance, generateOTP, ForgotPassword, ChangePassword } = require('../controllers/student.controller.js');
+const { StudentRegistration, StudentLogin, EnrolledClasses, GetAttandaces,UpdateStudent, VerifyOTP, GetAllAttendance, generateOTP, ForgotPassword, ChangePassword } = require('../controllers/student.controller.js');
 const router = express.Router();
 const { AuthOTPVerify, TokentLogin } = require('../middleware/authverify.js');
 
@@ -14,6 +14,7 @@ router.post('/attendance', GetAttandaces);
 router.get('/attendance/:rollNumber', GetAllAttendance);
 router.post('/forgot',AuthOTPVerify, ForgotPassword);
 router.post('/change', ChangePassword)
+router.post('/update', UpdateStudent)
 
 // done end
 module.exports = router
