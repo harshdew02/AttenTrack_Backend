@@ -14,7 +14,7 @@ router.post('/attendance', GetAttandaces);
 router.get('/attendance/:rollNumber', GetAllAttendance);
 router.post('/forgot',AuthOTPVerify, ForgotPassword);
 router.post('/change', ChangePassword)
-router.post('/update', UpdateStudent)
+router.put('/update', UpdateStudent)
 
 // done end
 module.exports = router
