@@ -155,6 +155,28 @@ const TeacherRegistration = async (req, res) => {
   }
 };
 
+const UpdateTeacher = async (req, res) => {
+  try {
+    const { email, eduQualification, telephone, interest } = req.body;
+    const teacher = await Teacher.findOne({ email });
+
+    if (!teacher) {
+      return res.status(404).json({ error: "Teacher not found" });
+    }
+
+    teacher.eduQualification = eduQualification || teacher.eduQualification;
+    teacher.telephone = telephone || teacher.telephone;
+    teacher.interest = interest || teacher.interest;
+
+    await teacher.save();
+
+    res.status(200).json({ message: "Teacher updated successfully" });
+  } catch (err) {
+    console.error("Error updating teacher:", err.message);
+    res.status(500).json({ error: err.message });
+  }
+}
+
 const TeacherLogin = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -280,4 +302,5 @@ module.exports = {
   ForgotPassword,
   ChangePassword,
   generateOTP,
+  UpdateTeacher
 };
