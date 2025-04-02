@@ -27,6 +27,9 @@ const VerifyOTP = async (req, res) => {
         password: teacher.password,
         department: teacher.department,
         coursesId: teacher.courses,
+        eduQualification: teacher.eduQualification,
+        telephone: teacher.telephone,
+        interest: teacher.interest,
         token: token,
       });
     } else {
@@ -208,6 +211,9 @@ const TeacherLogin = async (req, res) => {
       password: teacher.password,
       department: teacher.department,
       coursesId: teacher.courses,
+      eduQualification: teacher.eduQualification,
+      telephone: teacher.telephone,
+      interest: teacher.interest,
       token: token,
     });
   } catch (err) {
