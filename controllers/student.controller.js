@@ -31,20 +31,19 @@ const generateOTP = async (req, res) => {
     const student = await Student.findOne({ rollNumber });
 
     if (student) {
-        const otp = Math.floor(100000 + Math.random() * 900000);
+      const otp = Math.floor(100000 + Math.random() * 900000);
 
-        const send = {
-          name: student.fullName,
-          rollNumber: student.rollNumber,
-        };
+      const send = {
+        name: student.fullName,
+        rollNumber: student.rollNumber,
+      };
 
-        await SendOTP(student.email, otp, send);
+      await SendOTP(student.email, otp, send);
 
-        return res.status(200).json({
-          otpToken: generateToken({ otp: otp }),
-          tempOtp: otp,
-        });
-      
+      return res.status(200).json({
+        otpToken: generateToken({ otp: otp }),
+        tempOtp: otp,
+      });
     } else {
       return res.status(404).json({
         error: "Student not found",
@@ -55,7 +54,7 @@ const generateOTP = async (req, res) => {
     console.log(err);
     res.status(500).send(err.message);
   }
-}
+};
 
 const VerifyOTP = async (req, res) => {
   try {
@@ -78,6 +77,10 @@ const VerifyOTP = async (req, res) => {
         password: student.password,
         batch: student.batch,
         coursesId: student.courses,
+        branch: student.branch,
+        semester: student.semester,
+        phone: student.phone,
+        enroll: student.enroll,
         token: token,
       });
     } else {
@@ -114,19 +117,15 @@ const StudentRegistration = async (req, res) => {
           tempOtp: otp,
         });
       } else {
-        return res
-          .status(403)
-          .json({
-            error:
-              "Student already registered please login or do forget password",
-          });
+        return res.status(403).json({
+          error:
+            "Student already registered please login or do forget password",
+        });
       }
     } else {
-      return res
-        .status(404)
-        .json({
-          error: "Not found please tell your teacher to add in Class sheet",
-        });
+      return res.status(404).json({
+        error: "Not found please tell your teacher to add in Class sheet",
+      });
     }
   } catch (err) {
     console.log("Error in StudentRegistration", err.message);
@@ -158,7 +157,7 @@ const ChangePassword = async (req, res) => {
     console.error("Error changing password:", err.message);
     res.status(500).json({ error: err.message });
   }
-}
+};
 
 const StudentLogin = async (req, res) => {
   try {
@@ -189,6 +188,10 @@ const StudentLogin = async (req, res) => {
       password: student.password,
       batch: student.batch,
       coursesId: student.courses,
+      branch: student.branch,
+      semester: student.semester,
+      phone: student.phone,
+      enroll: student.enroll,
       token: token,
     });
   } catch (err) {
@@ -219,7 +222,7 @@ const UpdateStudent = async (req, res) => {
     console.error("Error updating student:", err.message);
     res.status(500).json({ error: err.message });
   }
-}
+};
 
 const EnrolledClasses = async (req, res) => {
   try {
