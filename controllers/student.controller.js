@@ -169,7 +169,7 @@ const StudentLogin = async (req, res) => {
     }
 
     if (await bcrypt.compare("any", student.password)) {
-      return res.status(400).json({ error: "Please do sing up first" });
+      return res.status(400).json({ error: "Please do sign up first" });
     }
 
     const isMatch = await bcrypt.compare(password, student.password);
