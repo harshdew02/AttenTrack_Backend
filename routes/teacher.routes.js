@@ -21,4 +21,5 @@ router.post('/records', getReport)
 router.post('/forgot',AuthOTPVerify, ForgotPassword)
 router.post('/change', ChangePassword)
 router.put('/update', UpdateTeacher)
+router.get('/overall-records/:class_id', )
 module.exports = router

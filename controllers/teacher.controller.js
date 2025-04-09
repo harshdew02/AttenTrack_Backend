@@ -1,4 +1,5 @@
 const Teacher = require("../models/teacher.model.js");
+const Student = require("../models/student.model.js");
 const Class = require("../models/class.model.js");
 const Attendance = require("../models/attendance.model.js");
 const { generateToken } = require("../services/token.service.js");
@@ -283,9 +284,10 @@ const getReport = async (req, res) => {
     let totalDays = attendanceRecords.length;
 
     attendanceRecords.forEach((record) => {
-      record.records.forEach((present, rollNumber) => {
+      record.records.forEach(async (present, rollNumber) => {
         if (!report[rollNumber]) {
-          report[rollNumber] = { totalDays, presentCount: 0 };
+          const student = await Student.findOne({ rollNumber });
+          report[rollNumber] = { totalDays, presentCount: 0, name:student.fullName };
         }
         if (present) {
           report[rollNumber].presentCount++;
