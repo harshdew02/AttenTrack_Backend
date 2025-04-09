@@ -87,7 +87,7 @@ const ChangePassword = async (req, res) => {
     console.error("Error changing password:", err.message);
     res.status(500).json({ error: err.message });
   }
-}
+};
 
 const generateOTP = async (req, res) => {
   try {
@@ -95,20 +95,19 @@ const generateOTP = async (req, res) => {
     const teacher = await Teacher.findOne({ email });
 
     if (teacher) {
-        const otp = Math.floor(100000 + Math.random() * 900000);
+      const otp = Math.floor(100000 + Math.random() * 900000);
 
-        const send = {
-          name: teacher.fullName,
-          email: teacher.email,
-        };
+      const send = {
+        name: teacher.fullName,
+        email: teacher.email,
+      };
 
-        await SendOTP(email, otp, send);
+      await SendOTP(email, otp, send);
 
-        return res.status(200).json({
-          otpToken: generateToken({ otp: otp }),
-          tempOtp: otp,
-        });
-      
+      return res.status(200).json({
+        otpToken: generateToken({ otp: otp }),
+        tempOtp: otp,
+      });
     } else {
       return res.status(404).json({
         error: "Teacher not found",
@@ -119,7 +118,7 @@ const generateOTP = async (req, res) => {
     console.log(err);
     res.status(500).send(err.message);
   }
-}
+};
 
 const TeacherRegistration = async (req, res) => {
   try {
@@ -179,7 +178,7 @@ const UpdateTeacher = async (req, res) => {
     console.error("Error updating teacher:", err.message);
     res.status(500).json({ error: err.message });
   }
-}
+};
 
 const TeacherLogin = async (req, res) => {
   try {
@@ -263,6 +262,29 @@ const GetClasses = async (req, res) => {
   }
 };
 
+const getReportHelper = async (attendanceRecords) => {
+  const rollNumbersSet = new Set();
+
+    for (const record of attendanceRecords) {
+      for (const rollNumber of record.records.keys()) {
+        rollNumbersSet.add(rollNumber);
+      }
+    }
+
+    const rollNumbers = Array.from(rollNumbersSet);
+
+    // Step 2: Fetch all student data in one go
+    const students = await Student.find({ rollNumber: { $in: rollNumbers } });
+
+    // Step 3: Create a lookup map for rollNumber → fullName
+    const studentMap = new Map();
+    students.forEach((student) => {
+      studentMap.set(student.rollNumber, student.fullName);
+    });
+
+    return studentMap;
+}
+
 const getReport = async (req, res) => {
   try {
     const { class_id, startDate, endDate } = req.body;
@@ -281,13 +303,18 @@ const getReport = async (req, res) => {
     });
 
     let report = {};
-    let totalDays = attendanceRecords.length;
+    const totalDays = attendanceRecords.length;
+
+    const studentMap = await getReportHelper(attendanceRecords);
 
     attendanceRecords.forEach((record) => {
-      record.records.forEach(async (present, rollNumber) => {
+      record.records.forEach((present, rollNumber) => {
         if (!report[rollNumber]) {
-          const student = await Student.findOne({ rollNumber });
-          report[rollNumber] = { totalDays, presentCount: 0, name:student.fullName };
+          report[rollNumber] = {
+            totalDays,
+            presentCount: 0,
+            name: studentMap.get(rollNumber) || 'Unknown'
+          };
         }
         if (present) {
           report[rollNumber].presentCount++;
@@ -297,9 +324,60 @@ const getReport = async (req, res) => {
 
     res.json({ class_id, totalDays, report });
   } catch (error) {
+    console.error("Error fetching attendance report:", error.message);
     res.status(500).json({ error: "Server error" });
   }
 };
+
+const OverallRecords = async (req, res) => {
+  try {
+    const { startDate, endDate, class_id } = req.body;
+
+    if (!startDate || !endDate || !class_id) {
+      return res.status(400).json({ error: 'Missing startDate, endDate or class id' });
+    }
+
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    end.setHours(23, 59, 59, 999); 
+
+    // Fetch records that match the class and date range
+    const attendanceRecords = await Attendance.find({
+      class_id,
+      date: { $gte: start, $lte: end }
+    });
+
+    // console.log(attendanceRecords)
+
+    const stats = attendanceRecords.map(record => {
+      let presentCount = 0;
+      let absentCount = 0;
+
+      record.records.forEach((present, ) => {
+        if (present) {
+          presentCount++;
+        } else {
+          absentCount++;
+        }
+      });
+
+      const d = new Date(record.date);
+      const formattedDate = `${String(d.getDate()).padStart(2, '0')}-${String(d.getMonth() + 1).padStart(2, '0')}-${d.getFullYear()}`;
+
+      return {
+        date: formattedDate,
+        presentCount,
+        absentCount
+      };
+    });
+
+    res.status(200).json(stats);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to fetch filtered attendance stats' });
+  }
+};
+
 
 module.exports = {
   TeacherRegistration,
@@ -310,5 +388,6 @@ module.exports = {
   ForgotPassword,
   ChangePassword,
   generateOTP,
-  UpdateTeacher
+  UpdateTeacher,
+  OverallRecords
 };
