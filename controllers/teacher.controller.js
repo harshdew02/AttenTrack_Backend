@@ -273,13 +273,12 @@ const getReportHelper = async (attendanceRecords) => {
 
     const rollNumbers = Array.from(rollNumbersSet);
 
-    // Step 2: Fetch all student data in one go
     const students = await Student.find({ rollNumber: { $in: rollNumbers } });
 
     // Step 3: Create a lookup map for rollNumber → fullName
     const studentMap = new Map();
     students.forEach((student) => {
-      studentMap.set(student.rollNumber, student.fullName);
+      studentMap.set(student.rollNumber, {name: student.fullName, email: student.email});
     });
 
     return studentMap;
@@ -313,7 +312,8 @@ const getReport = async (req, res) => {
           report[rollNumber] = {
             totalDays,
             presentCount: 0,
-            name: studentMap.get(rollNumber) || 'Unknown'
+            name: studentMap.get(rollNumber).name || 'Unknown',
+            email: studentMap.get(rollNumber).email || 'Unknown'
           };
         }
         if (present) {
