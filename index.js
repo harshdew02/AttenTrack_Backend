@@ -36,7 +36,7 @@ wss.on('connection', (ws) => {
     if (data.type === 'time_update') {
       wss.clients.forEach((client) => {
         if (client.readyState === WebSocket.OPEN) {
-          client.send(JSON.stringify({ type: 'time_update2', time: data.time }));
+          client.send(JSON.stringify({ type: 'time_update2', time: data.time, location: data.location, range:data.range }));
         }
       });
     }else if(data.type === 'attendance'){
@@ -86,7 +86,6 @@ app.use("/api/student", require("./routes/student.routes.js"));
 app.use("/api/teacher", require("./routes/teacher.routes.js"));
 app.use("/api/superadmin", require("./routes/superadmin.routes.js"));
 app.use("/api/class", require("./routes/class.routes.js"));
-// app.use("/api/sheet", require("./routes/sheet.routes.js"));
 app.use("/api/attendance", require("./routes/attendance.routes.js"));
 
 
