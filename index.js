@@ -26,6 +26,7 @@ app.use(express.json());
 
 let currentOTP = null;
 let finalTime = 1; 
+let currentId = null;
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
@@ -67,14 +68,15 @@ wss.on('connection', (ws) => {
 });
 
 app.post('/setAttendance', (req, res) => {
-  const { otp, time } = req.body;
+  const { otp, time, id } = req.body;
   currentOTP = otp;
   finalTime = time;
+  currentId = id;
   res.send('OTP and Final Time set');
 });
 
 app.get('/getAttendance', (req, res) => {
-  res.json({currentOTP, finalTime});
+  res.json({currentOTP, finalTime, currentId});
 });
 
 app.get('/', (req, res) => {
