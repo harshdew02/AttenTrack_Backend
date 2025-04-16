@@ -362,10 +362,12 @@ const OverallRecords = async (req, res) => {
       });
 
       const d = new Date(record.date);
-      const formattedDate = `${String(d.getDate()).padStart(2, '0')}-${String(d.getMonth() + 1).padStart(2, '0')}-${d.getFullYear()}`;
+      const formattedDate = `${String(d.getDate()).padStart(2, '0')}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getFullYear()).slice(-2)}`;
+      const formattedTime = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
 
       return {
         date: formattedDate,
+        time: formattedTime,
         presentCount,
         absentCount
       };
