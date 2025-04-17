@@ -286,9 +286,12 @@ const GetAttandaces = async (req, res) => {
     
     const attendanceMap = [];
 
+    
     attendanceRecords.forEach((record) => {
-      const formattedDate = record.date.toISOString().split("T")[0];
-      attendanceMap.push({date: formattedDate, status: record.records.get(rollNumber) || false})
+      const d = new Date(record.date);
+      const formattedDate = `${String(d.getDate()).padStart(2, '0')}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getFullYear()).slice(-2)}`;
+      const formattedTime = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+      attendanceMap.push({date: formattedDate,time:formattedTime, status: record.records.get(rollNumber) || false})
     });
 
     res.json({ totalClasses, presentClasses, attendanceMap });

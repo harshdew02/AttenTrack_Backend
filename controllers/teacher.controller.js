@@ -265,24 +265,27 @@ const GetClasses = async (req, res) => {
 const getReportHelper = async (attendanceRecords) => {
   const rollNumbersSet = new Set();
 
-    for (const record of attendanceRecords) {
-      for (const rollNumber of record.records.keys()) {
-        rollNumbersSet.add(rollNumber);
-      }
+  for (const record of attendanceRecords) {
+    for (const rollNumber of record.records.keys()) {
+      rollNumbersSet.add(rollNumber);
     }
+  }
 
-    const rollNumbers = Array.from(rollNumbersSet);
+  const rollNumbers = Array.from(rollNumbersSet);
 
-    const students = await Student.find({ rollNumber: { $in: rollNumbers } });
+  const students = await Student.find({ rollNumber: { $in: rollNumbers } });
 
-    // Step 3: Create a lookup map for rollNumber → fullName
-    const studentMap = new Map();
-    students.forEach((student) => {
-      studentMap.set(student.rollNumber, {name: student.fullName, email: student.email});
+  // Step 3: Create a lookup map for rollNumber → fullName
+  const studentMap = new Map();
+  students.forEach((student) => {
+    studentMap.set(student.rollNumber, {
+      name: student.fullName,
+      email: student.email,
     });
+  });
 
-    return studentMap;
-}
+  return studentMap;
+};
 
 const getReport = async (req, res) => {
   try {
@@ -312,8 +315,8 @@ const getReport = async (req, res) => {
           report[rollNumber] = {
             totalDays,
             presentCount: 0,
-            name: studentMap.get(rollNumber).name || 'Unknown',
-            email: studentMap.get(rollNumber).email || 'Unknown'
+            name: studentMap.get(rollNumber).name || "Unknown",
+            email: studentMap.get(rollNumber).email || "Unknown",
           };
         }
         if (present) {
@@ -334,26 +337,28 @@ const OverallRecords = async (req, res) => {
     const { startDate, endDate, class_id } = req.body;
 
     if (!startDate || !endDate || !class_id) {
-      return res.status(400).json({ error: 'Missing startDate, endDate or class id' });
+      return res
+        .status(400)
+        .json({ error: "Missing startDate, endDate or class id" });
     }
 
     const start = new Date(startDate);
     const end = new Date(endDate);
-    end.setHours(23, 59, 59, 999); 
+    end.setHours(23, 59, 59, 999);
 
     // Fetch records that match the class and date range
     const attendanceRecords = await Attendance.find({
       class_id,
-      date: { $gte: start, $lte: end }
+      date: { $gte: start, $lte: end },
     });
 
     // console.log(attendanceRecords)
 
-    const stats = attendanceRecords.map(record => {
+    const stats = attendanceRecords.map((record) => {
       let presentCount = 0;
       let absentCount = 0;
 
-      record.records.forEach((present, ) => {
+      record.records.forEach((present) => {
         if (present) {
           presentCount++;
         } else {
@@ -362,24 +367,73 @@ const OverallRecords = async (req, res) => {
       });
 
       const d = new Date(record.date);
-      const formattedDate = `${String(d.getDate()).padStart(2, '0')}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getFullYear()).slice(-2)}`;
-      const formattedTime = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+      const formattedDate = `${String(d.getDate()).padStart(2, "0")}-${String(
+        d.getMonth() + 1
+      ).padStart(2, "0")}-${String(d.getFullYear()).slice(-2)}`;
+      const formattedTime = `${String(d.getHours()).padStart(2, "0")}:${String(
+        d.getMinutes()
+      ).padStart(2, "0")}`;
 
       return {
         date: formattedDate,
         time: formattedTime,
+        id: record._id.toString(),
         presentCount,
-        absentCount
+        absentCount,
       };
     });
 
     res.status(200).json(stats);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'Failed to fetch filtered attendance stats' });
+    res
+      .status(500)
+      .json({ error: "Failed to fetch filtered attendance stats" });
   }
 };
 
+const SpecificRecord = async (req, res) => {
+  try {
+    const attendance_id = req.query.id;
+    if (!attendance_id) {
+      return res.status(400).json({ error: "Missing attendance_id" });
+    }
+    const attendanceRecord = await Attendance.findOne({ _id: attendance_id });
+    return res.status(200).json(attendanceRecord.records);
+  } catch (error) {
+    console.error("Error fetching specific attendance record:", error.message);
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
+const UpdateSpecificRecord = async (req, res) => {
+  try {
+    const { attendance_id, datas } = req.body;
+
+    if (!attendance_id || !Array.isArray(datas)) {
+      return res
+        .status(400)
+        .json({ error: "Missing attendance_id or datas array" });
+    }
+
+    const attendanceRecord = await Attendance.findOne({ _id: attendance_id });
+
+    if (!attendanceRecord) {
+      return res.status(404).json({ error: "Attendance record not found" });
+    }
+
+    datas.forEach(rollNumber => {
+      attendanceRecord.records.set(rollNumber, !attendanceRecord.records.get(rollNumber));
+    });
+
+    await attendanceRecord.save();
+
+    res.status(200).json({ message: "Attendance updated successfully" });
+  } catch (error) {
+    console.error("Error updating specific attendance record:", error.message);
+    res.status(500).json({ error: "Server error" });
+  }
+};
 
 module.exports = {
   TeacherRegistration,
@@ -391,5 +445,7 @@ module.exports = {
   ChangePassword,
   generateOTP,
   UpdateTeacher,
-  OverallRecords
+  OverallRecords,
+  SpecificRecord,
+  UpdateSpecificRecord,
 };
