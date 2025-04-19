@@ -392,49 +392,6 @@ const OverallRecords = async (req, res) => {
   }
 };
 
-const SpecificRecord = async (req, res) => {
-  try {
-    const attendance_id = req.query.id;
-    if (!attendance_id) {
-      return res.status(400).json({ error: "Missing attendance_id" });
-    }
-    const attendanceRecord = await Attendance.findOne({ _id: attendance_id });
-    return res.status(200).json(attendanceRecord.records);
-  } catch (error) {
-    console.error("Error fetching specific attendance record:", error.message);
-    res.status(500).json({ error: "Server error" });
-  }
-};
-
-const UpdateSpecificRecord = async (req, res) => {
-  try {
-    const { attendance_id, datas } = req.body;
-
-    if (!attendance_id || !Array.isArray(datas)) {
-      return res
-        .status(400)
-        .json({ error: "Missing attendance_id or datas array" });
-    }
-
-    const attendanceRecord = await Attendance.findOne({ _id: attendance_id });
-
-    if (!attendanceRecord) {
-      return res.status(404).json({ error: "Attendance record not found" });
-    }
-
-    datas.forEach(rollNumber => {
-      attendanceRecord.records.set(rollNumber, !attendanceRecord.records.get(rollNumber));
-    });
-
-    await attendanceRecord.save();
-
-    res.status(200).json({ message: "Attendance updated successfully" });
-  } catch (error) {
-    console.error("Error updating specific attendance record:", error.message);
-    res.status(500).json({ error: "Server error" });
-  }
-};
-
 module.exports = {
   TeacherRegistration,
   TeacherLogin,
@@ -445,7 +402,5 @@ module.exports = {
   ChangePassword,
   generateOTP,
   UpdateTeacher,
-  OverallRecords,
-  SpecificRecord,
-  UpdateSpecificRecord,
+  OverallRecords
 };

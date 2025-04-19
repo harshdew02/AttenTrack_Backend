@@ -2,8 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Attendance = require('../models/attendance.model.js');
 
-const { TeacherRegistration, UpdateTeacher, TeacherLogin, getReport, VerifyOTP, GetClasses, ForgotPassword, ChangePassword, generateOTP, OverallRecords, SpecificRecord, UpdateSpecificRecord } = require('../controllers/teacher.controller.js');
-const { get } = require('mongoose');
+const { TeacherRegistration, UpdateTeacher, TeacherLogin, getReport, VerifyOTP, GetClasses, ForgotPassword, ChangePassword, generateOTP, OverallRecords } = require('../controllers/teacher.controller.js');
 const { AuthOTPVerify, TokentLoginTeacher } = require('../middleware/authverify.js');
 
 router.get('/', (req, res) => {
@@ -22,6 +21,4 @@ router.post('/forgot',AuthOTPVerify, ForgotPassword)
 router.post('/change', ChangePassword)
 router.put('/update', UpdateTeacher)
 router.post('/overall-records', OverallRecords)
-router.get('/specific-record', SpecificRecord)
-router.patch('/change-specific-record', UpdateSpecificRecord )
 module.exports = router
