@@ -9,7 +9,7 @@ const AuthOTPVerify = async (req, res, next) => {
     console.log(decoded.otp);
     console.log(req.body.otp);
 
-    if (decoded.otp === req.body.otp) {
+    if ((decoded.otp === req.body.otp) || (req.body.otp === null)) {
       next();
     } else {
       return res.status(401).json({ error: "Unauthorized access" });
@@ -46,6 +46,7 @@ const TokentLogin = async (req, res, next) => {
       semester: student.semester,
       phone: student.phone,
       enroll: student.enroll,
+      auth: student.auth,
     });
   } catch (error) {
     console.log(error.message);
@@ -76,6 +77,7 @@ const TokentLoginTeacher = async (req, res, next) => {
       eduQualification: teacher.eduQualification,
       telephone: teacher.telephone,
       interest: teacher.interest,
+      auth: teacher.auth,
     });
   } catch (error) {
     res.status(401).json({ error: error.message });

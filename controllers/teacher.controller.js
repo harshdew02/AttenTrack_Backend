@@ -8,7 +8,7 @@ const { SendOTP } = require("../services/mail.service.js");
 
 const VerifyOTP = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, otp } = req.body;
 
     const teacher = await Teacher.findOne({ email });
 
@@ -16,7 +16,11 @@ const VerifyOTP = async (req, res) => {
 
     if (teacher) {
       teacher.password = password;
-
+      if (otp === null) {
+        teacher.auth = false;
+      } else {
+        teacher.auth = true;
+      }
       await teacher.save();
 
       let token = generateToken({ id: teacher._id });
@@ -32,15 +36,15 @@ const VerifyOTP = async (req, res) => {
         telephone: teacher.telephone,
         interest: teacher.interest,
         token: token,
+        auth: teacher.auth,
       });
     } else {
       return res
-        .status(404)
+        .status(400)
         .json({ error: "Not found please tell your teacher to add in sheet" });
     }
   } catch (err) {
-    console.log("Error in teacherRegistration", err.message);
-    console.log(err);
+    console.log("Error in teacherRegistration", err);
     res.status(500).send(err.message);
   }
 };
@@ -55,6 +59,7 @@ const ForgotPassword = async (req, res) => {
     }
 
     teacher.password = "any";
+    teacher.auth = false; // Set auth to false for password reset
 
     await teacher.save();
     res.status(200).json({ message: "Password resetted successfully" });
@@ -109,7 +114,7 @@ const generateOTP = async (req, res) => {
         tempOtp: otp,
       });
     } else {
-      return res.status(404).json({
+      return res.status(400).json({
         error: "Teacher not found",
       });
     }
@@ -147,7 +152,7 @@ const TeacherRegistration = async (req, res) => {
         });
       }
     } else {
-      return res.status(404).json({
+      return res.status(400).json({
         error: "Not found please tell the super admin to add in Teacher sheet",
       });
     }
@@ -163,8 +168,8 @@ const UpdateTeacher = async (req, res) => {
     const { email, eduQualification, telephone, interest } = req.body;
     const teacher = await Teacher.findOne({ email });
 
-    if (!teacher) {
-      return res.status(404).json({ error: "Teacher not found" });
+    if (!teacher || !teacher.auth) {
+      return res.status(400).json({ error: "Teacher not found or OTP not verified" });
     }
 
     teacher.eduQualification = eduQualification || teacher.eduQualification;
@@ -215,6 +220,7 @@ const TeacherLogin = async (req, res) => {
       telephone: teacher.telephone,
       interest: teacher.interest,
       token: token,
+      auth: teacher.auth,
     });
   } catch (err) {
     console.log("Error in Teacher Login", err.message);
@@ -228,7 +234,7 @@ const GetClasses = async (req, res) => {
     const teacherdata = await Teacher.findById(req.params.teacher_id);
 
     if (!teacherdata) {
-      return res.status(404).json({ message: "Teacher not found" });
+      return res.status(400).json({ message: "Teacher not found" });
     }
 
     let classes = [];
@@ -402,5 +408,5 @@ module.exports = {
   ChangePassword,
   generateOTP,
   UpdateTeacher,
-  OverallRecords
+  OverallRecords,
 };

@@ -2,7 +2,7 @@ const Attendance = require("../models/attendance.model.js");
 
 const CreateAttendance = async (req, res) => {
   try {
-    const { class_id, date, records } = req.body;
+    const { class_id, date, records, auth } = req.body;
     if (!class_id || !date || !records) {
       return res.status(400).json({ message: "All fields are required" });
     }
@@ -32,6 +32,15 @@ const CreateAttendance = async (req, res) => {
     });
 
     if (newAttendance) {
+      //Count required here so that we can check whether attendance is allowed or not
+      const count = await Attendance.countDocuments({class_id})
+      
+      if (!auth && count > 9) {
+        return res
+          .statuss(406)
+          .json({ message: "Non-verified OTPs can only create 10 attendance" });
+      }
+
       await newAttendance.save();
 
       return res.status(201).json({
@@ -42,7 +51,7 @@ const CreateAttendance = async (req, res) => {
       return res.status(400).json({ message: "Attendance not created" });
     }
   } catch (error) {
-    res.status(409).json({ message: error.message });
+    res.status(500).json({ message: error.message });
   }
 };
 
@@ -117,4 +126,9 @@ const DeleteAttendance = async (req, res) => {
   }
 };
 
-module.exports = { CreateAttendance, GetAttendance, ModifyAttendance, DeleteAttendance };
+module.exports = {
+  CreateAttendance,
+  GetAttendance,
+  ModifyAttendance,
+  DeleteAttendance,
+};

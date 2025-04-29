@@ -64,7 +64,10 @@ const studentSchema = new mongoose.Schema({
     trim: true,
     set: (value) => value.trim() === "" ? "Not Set" : value.trim()
   },
-
+  auth:{
+    type: Boolean,
+    default: false
+  }
 }, { timestamps: true });
 
 studentSchema.pre('save',async function (next) {

@@ -1,7 +1,6 @@
 const Student = require("../models/student.model.js");
 const Class = require("../models/class.model.js");
 const Attendance = require("../models/attendance.model.js");
-const Teacher = require("../models/teacher.model.js");
 const { generateToken } = require("../services/token.service.js");
 const bcrypt = require("bcryptjs");
 const { SendOTP } = require("../services/mail.service.js");
@@ -16,6 +15,7 @@ const ForgotPassword = async (req, res) => {
     }
 
     student.password = "any";
+    student.auth = false;
 
     await student.save();
     res.status(200).json({ message: "Password resetted successfully" });
@@ -45,7 +45,7 @@ const generateOTP = async (req, res) => {
         tempOtp: otp,
       });
     } else {
-      return res.status(404).json({
+      return res.status(400).json({
         error: "Student not found",
       });
     }
@@ -58,12 +58,18 @@ const generateOTP = async (req, res) => {
 
 const VerifyOTP = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, otp } = req.body;
 
     const student = await Student.findOne({ email });
 
     if (student) {
       student.password = password;
+
+      if (otp === null) {
+        student.auth = false;
+      } else {
+        student.auth = true;
+      }
 
       await student.save();
 
@@ -85,7 +91,7 @@ const VerifyOTP = async (req, res) => {
       });
     } else {
       return res
-        .status(404)
+        .status(400)
         .json({ error: "Not found please tell your teacher to add in sheet" });
     }
   } catch (err) {
@@ -117,13 +123,13 @@ const StudentRegistration = async (req, res) => {
           tempOtp: otp,
         });
       } else {
-        return res.status(403).json({
+        return res.status(406).json({
           error:
             "Student already registered please login or do forget password",
         });
       }
     } else {
-      return res.status(404).json({
+      return res.status(400).json({
         error: "Not found please tell your teacher to add in Class sheet",
       });
     }
@@ -193,6 +199,7 @@ const StudentLogin = async (req, res) => {
       phone: student.phone,
       enroll: student.enroll,
       token: token,
+      auth: student.auth,
     });
   } catch (err) {
     console.log("Error in StudentLogin", err.message);
@@ -206,8 +213,8 @@ const UpdateStudent = async (req, res) => {
     const { rollNumber, branch, semester, enroll, phone } = req.body;
     const student = await Student.findOne({ rollNumber });
 
-    if (!student) {
-      return res.status(404).json({ error: "Student not found" });
+    if (!student || !student.auth) {
+      return res.status(400).json({ error: "Student not found or OTP not verified" });
     }
 
     student.branch = branch || student.branch;
@@ -229,7 +236,7 @@ const EnrolledClasses = async (req, res) => {
     const studentdata = await Student.findById(req.params.student_id);
 
     if (!studentdata) {
-      return res.status(404).json({ message: "Student not found" });
+      return res.status(400).json({ message: "Student not found" });
     }
 
     let classes = [];
@@ -265,7 +272,7 @@ const EnrolledClasses = async (req, res) => {
 
 const GetAttandaces = async (req, res) => {
   try {
-    const { class_id, rollNumber } = req.body;
+    const { class_id, rollNumber, auth } = req.body;
 
     if (!class_id || !rollNumber) {
       return res
@@ -294,7 +301,7 @@ const GetAttandaces = async (req, res) => {
       attendanceMap.push({date: formattedDate,time:formattedTime, status: record.records.get(rollNumber) || false})
     });
 
-    res.json({ totalClasses, presentClasses, attendanceMap });
+    res.json({ totalClasses, presentClasses, attendanceMap, not_allowed: !auth && totalClasses > 9 });
   } catch (error) {
     res.status(500).json({ message: "Server error", error });
   }
@@ -311,7 +318,7 @@ const GetAllAttendance = async (req, res) => {
     const student = await Student.findOne({ rollNumber });
 
     if (!student) {
-      return res.status(404).json({ message: "Student not found" });
+      return res.status(400).json({ message: "Student not found" });
     }
 
     const attendanceSummary = {};
