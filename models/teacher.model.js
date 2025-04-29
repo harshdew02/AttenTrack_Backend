@@ -60,6 +60,10 @@ const teacherSchema = new mongoose.Schema(
       trim: true,
       set: (value) => value.trim() === "" ? "Not Set" : value.trim()
     },
+    auth: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true }
 );
