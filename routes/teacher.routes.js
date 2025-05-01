@@ -17,7 +17,7 @@ router.post('/login', TeacherLogin);
 router.get('/token-login', TokentLoginTeacher, TeacherLogin)
 router.get('/classes-info/:teacher_id', GetClasses);
 router.post('/records', getReport)
-router.post('/forgot',AuthOTPVerify, ForgotPassword)
+router.post('/forgot', AuthOTPVerify, ForgotPassword)
 router.post('/change', ChangePassword)
 router.put('/update', UpdateTeacher)
 router.post('/overall-records', OverallRecords)

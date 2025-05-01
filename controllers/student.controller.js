@@ -7,18 +7,28 @@ const { SendOTP } = require("../services/mail.service.js");
 
 const ForgotPassword = async (req, res) => {
   try {
-    const { rollNumber } = req.body;
+    const { rollNumber, verify, otp } = req.body;
     const student = await Student.findOne({ rollNumber });
 
     if (!student) {
       return res.status(400).json({ error: "Student not found" });
     }
 
-    student.password = "any";
-    student.auth = false;
+    if (verify && otp) {
+      student.auth = true;
+    } else if (otp && !verify) {
+      student.password = "any";
+      student.auth = false;
+    } else {
+      return res.status(400).json({ error: "Invalid request" });
+    }
 
     await student.save();
-    res.status(200).json({ message: "Password resetted successfully" });
+    res
+      .status(200)
+      .json({
+        message: verify ? "Student verifed" : "Password resetted successfully",
+      });
   } catch (err) {
     console.error("Error updating password:", err.message);
     res.status(500).json({ error: err.message });
@@ -214,7 +224,9 @@ const UpdateStudent = async (req, res) => {
     const student = await Student.findOne({ rollNumber });
 
     if (!student || !student.auth) {
-      return res.status(400).json({ error: "Student not found or OTP not verified" });
+      return res
+        .status(400)
+        .json({ error: "Student not found or OTP not verified" });
     }
 
     student.branch = branch || student.branch;
@@ -290,18 +302,30 @@ const GetAttandaces = async (req, res) => {
       { class_id },
       "date records"
     );
-    
+
     const attendanceMap = [];
 
-    
     attendanceRecords.forEach((record) => {
       const d = new Date(record.date);
-      const formattedDate = `${String(d.getDate()).padStart(2, '0')}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getFullYear()).slice(-2)}`;
-      const formattedTime = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
-      attendanceMap.push({date: formattedDate,time:formattedTime, status: record.records.get(rollNumber) || false})
+      const formattedDate = `${String(d.getDate()).padStart(2, "0")}-${String(
+        d.getMonth() + 1
+      ).padStart(2, "0")}-${String(d.getFullYear()).slice(-2)}`;
+      const formattedTime = `${String(d.getHours()).padStart(2, "0")}:${String(
+        d.getMinutes()
+      ).padStart(2, "0")}`;
+      attendanceMap.push({
+        date: formattedDate,
+        time: formattedTime,
+        status: record.records.get(rollNumber) || false,
+      });
     });
 
-    res.json({ totalClasses, presentClasses, attendanceMap, not_allowed: !auth && totalClasses > 9 });
+    res.json({
+      totalClasses,
+      presentClasses,
+      attendanceMap,
+      not_allowed: !auth && totalClasses > 9,
+    });
   } catch (error) {
     res.status(500).json({ message: "Server error", error });
   }
