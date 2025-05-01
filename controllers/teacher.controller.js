@@ -51,18 +51,28 @@ const VerifyOTP = async (req, res) => {
 
 const ForgotPassword = async (req, res) => {
   try {
-    const { email } = req.body;
+    const { email, verify, otp } = req.body;
     const teacher = await Teacher.findOne({ email });
 
     if (!teacher) {
       return res.status(400).json({ error: "Teacher not found" });
     }
 
-    teacher.password = "any";
-    teacher.auth = false; // Set auth to false for password reset
+    if (verify && otp) {
+      teacher.auth = true;
+    } else if (otp) {
+      teacher.password = "any";
+      teacher.auth = false; // Set auth to false for password reset
+    } else {
+      return res.status(400).json({ error: "Invalid request" });
+    }
 
     await teacher.save();
-    res.status(200).json({ message: "Password resetted successfully" });
+    res
+      .status(200)
+      .json({
+        message: verify ? "Teacher verifed" : "Password resetted successfully",
+      });
   } catch (err) {
     console.error("Error updating password:", err.message);
     res.status(500).json({ error: err.message });
@@ -169,7 +179,9 @@ const UpdateTeacher = async (req, res) => {
     const teacher = await Teacher.findOne({ email });
 
     if (!teacher || !teacher.auth) {
-      return res.status(400).json({ error: "Teacher not found or OTP not verified" });
+      return res
+        .status(400)
+        .json({ error: "Teacher not found or OTP not verified" });
     }
 
     teacher.eduQualification = eduQualification || teacher.eduQualification;
