@@ -95,5 +95,5 @@ app.use("/api/attendance", require("./routes/attendance.routes.js"));
 
 
 server.listen(PORT,"0.0.0.0", () => {
-  console.log(`Server started on port ${PORT}`);
+  console.log(`Server started on port ${PORT} and Environment is ${config.env}`);
 });
