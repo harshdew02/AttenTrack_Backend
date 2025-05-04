@@ -209,8 +209,8 @@
           "200": {
             "description": "OK"
           },
-          "400": {
-            "description": "Bad Request"
+          "404": {
+            "description": "Not Found"
           },
           "500": {
             "description": "Internal Server Error"
@@ -219,31 +219,26 @@
       }
     },
     "/api/student/attendance": {
-      "post": {
+      "get": {
         "description": "",
         "parameters": [
           {
-            "name": "body",
-            "in": "body",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "class_id": {
-                  "example": "any"
-                },
-                "rollNumber": {
-                  "example": "any"
-                }
-              }
-            }
+            "name": "class_id",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "rollNumber",
+            "in": "query",
+            "type": "string"
           }
         ],
         "responses": {
           "200": {
             "description": "OK"
           },
-          "400": {
-            "description": "Bad Request"
+          "404": {
+            "description": "Not Found"
           },
           "500": {
             "description": "Internal Server Error"
@@ -265,9 +260,6 @@
         "responses": {
           "200": {
             "description": "OK"
-          },
-          "400": {
-            "description": "Bad Request"
           },
           "404": {
             "description": "Not Found"

@@ -2,21 +2,18 @@ const express = require('express');
 const http = require('http');
 const WebSocket = require('ws');
 const cors = require('cors');
+const dotenv = require('dotenv').config();
 const swaggerUi = require('swagger-ui-express');
 const swaggerDocument = require('./swagger-output.json');
-const config = require('./config/config');
+
 const connectDB = require('./config/connectdb.js');
 const app = express();
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 
-require('dotenv').config({
-  path: `.env.${process.env.NODE_ENV || 'development'}`
-});
-
 connectDB();
 
-const PORT = config.port || 3000;
+const PORT = process.env.PORT || 3000;
 
 app.use(cors({
   origin: '*',

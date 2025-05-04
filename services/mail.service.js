@@ -1,6 +1,5 @@
 const nodemailer = require("nodemailer");
 const dotenv = require('dotenv');
-const config = require('../config/config.js');
 
 dotenv.config();
 
@@ -9,8 +8,8 @@ const transporter = nodemailer.createTransport({
     port: 587,
     secure: false, // true for port 465, false for other ports
     auth: {
-        user: config.emailID,
-        pass: config.emailPassword,
+        user: "startupbubbles4@gmail.com",
+        pass: process.env.EMAIL_PASSWORD,
     },
 });
 
