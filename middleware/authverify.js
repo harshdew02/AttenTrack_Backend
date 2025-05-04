@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken');
+const config = require('../config/config.js');
 // const Student = require('../models/student.model');
 const Teacher = require('../models/teacher.model');
 
@@ -7,7 +8,7 @@ const AuthOTPVerify = async (req, res, next) => {
     try {
         const token = req.headers.authorization?.split(" ")[1];
         
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const decoded = jwt.verify(token, config.jwtSecret);
         console.log(decoded.otp);
         console.log(req.body.otp);
 
@@ -27,7 +28,7 @@ const TokentLogin = async (req, res, next) => {
         const Student = require('../models/student.model');
 
         const token = req.headers.authorization?.split(" ")[1];
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const decoded = jwt.verify(token, config.jwtSecret);
 
         console.log("token login:",decoded);
 
@@ -57,7 +58,7 @@ const TokentLogin = async (req, res, next) => {
 const TokentLoginTeacher = async (req, res, next) => {
     try {
         const token = req.headers.authorization?.split(" ")[1];
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const decoded = jwt.verify(token, config.jwtSecret);
         console.log("token login",decoded);
 
         const teacher = await Teacher.findById(decoded.id);

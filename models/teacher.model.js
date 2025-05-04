@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const bcrypt = require("bcryptjs");
 const Schema = mongoose.Schema;
+const config = require('../config/config.js');
 
 // Define the teacher schema
 const teacherSchema = new mongoose.Schema({
@@ -42,7 +43,7 @@ teacherSchema.pre('save', async function (next) {
     if (!teacher.isModified('password'))
         return next();
     try {
-        const saltRound = await bcrypt.genSalt(parseInt(process.env.SALT_ROUND));
+        const saltRound = await bcrypt.genSalt((config.saltRounds));
         const hash_password = await bcrypt.hash(teacher.password, saltRound);
         teacher.password = hash_password;
         next();
