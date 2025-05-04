@@ -1,13 +1,19 @@
-const jwt = require("jsonwebtoken");
-const Teacher = require("../models/teacher.model");
+const jwt = require('jsonwebtoken');
+const config = require('../config/config.js');
+// const Student = require('../models/student.model');
+const Teacher = require('../models/teacher.model');
 
 const AuthOTPVerify = async (req, res, next) => {
   try {
     const token = req.headers.authorization?.split(" ")[1];
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    console.log(decoded.otp);
-    console.log(req.body.otp);
+const AuthOTPVerify = async (req, res, next) => {    
+    try {
+        const token = req.headers.authorization?.split(" ")[1];
+        
+        const decoded = jwt.verify(token, config.jwtSecret);
+        console.log(decoded.otp);
+        console.log(req.body.otp);
 
     if ((decoded.otp === req.body.otp) || (req.body.otp === null)) {
       next();
@@ -22,9 +28,8 @@ const AuthOTPVerify = async (req, res, next) => {
 const TokentLogin = async (req, res, next) => {
   try {
     const Student = require("../models/student.model");
-
-    const token = req.headers.authorization?.split(" ")[1];
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const token = req.headers.authorization?.split(" ")[1];
+        const decoded = jwt.verify(token, config.jwtSecret);
 
     console.log("token login:", decoded);
 
@@ -33,6 +38,12 @@ const TokentLogin = async (req, res, next) => {
     if (!student) {
       return res.status(401).json({ error: "Unauthorized access" });
     }
+
+const TokentLoginTeacher = async (req, res, next) => {
+    try {
+        const token = req.headers.authorization?.split(" ")[1];
+        const decoded = jwt.verify(token, config.jwtSecret);
+        console.log("token login",decoded);
 
     return res.status(201).json({
       id: student._id,
