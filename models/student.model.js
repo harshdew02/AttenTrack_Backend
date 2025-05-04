@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const bcrypt = require("bcryptjs");
+const config = require('../config/config.js');
 
 const studentSchema = new mongoose.Schema({
   email: {
@@ -77,7 +78,7 @@ studentSchema.pre('save',async function (next) {
   if (!student.isModified('password'))
     return next();
   try {
-    const saltRound = await bcrypt.genSalt(parseInt(process.env.SALT_ROUND));
+    const saltRound = await bcrypt.genSalt(config.saltRounds);
     const hash_password = await bcrypt.hash(student.password, saltRound);
     student.password = hash_password;
     next();
