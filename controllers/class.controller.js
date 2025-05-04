@@ -128,21 +128,22 @@ const GetList = async (req, res) => {
 
         res.status(200).json(body);
     } catch (error) {
+        console.error('Error fetching class list:', error.message, error);
         res.status(500).json({ error: 'Server error' });
     }
 }
 
 const DeletClass = async (req, res) => {
     try {
-        const { ClassId } = req.params;
+        const { classId } = req.params;
 
-        const deletedClass = await Class.findByIdAndDelete(ClassId);
+        const deletedClass = await Class.findByIdAndDelete(classId);
 
         if (!deletedClass) {
             return res.status(404).json({ message: 'Class not found' });
         }
 
-        res.status(200).json({ message: 'Class deleted successfully' });
+        res.status(204).json({ message: 'Class deleted successfully' });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Server error' });

@@ -7,7 +7,7 @@ const studentSchema = new mongoose.Schema({
     type: String,
     required: true,
     unique: true,
-    match: [/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/, 'Please enter a valid email address'],
+    match: [/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/, 'Please enter a valid email address'],
     trim: true,
     lowercase: true,
     index: true
@@ -36,7 +36,39 @@ const studentSchema = new mongoose.Schema({
   courses: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Class'
-  }]
+  }],
+  branch: {
+    type: String,
+    required: false,
+    default: "Not Set",
+    trim: true,
+    set: (value) => value.trim() === "" ? "Not Set" : value.trim()
+  },
+  semester: {
+    type: String,
+    required: false,
+    default: "Not Set",
+    trim: true,
+    set: (value) => value.trim() === "" ? "Not Set" : value.trim()
+  },
+  enroll: {
+    type: String,
+    required: false,
+    default: "Not Set",
+    trim: true,
+    set: (value) => value.trim() === "" ? "Not Set" : value.trim()
+  },
+  phone: {
+    type: String,
+    required: false,
+    default: "Not Set",
+    trim: true,
+    set: (value) => value.trim() === "" ? "Not Set" : value.trim()
+  },
+  auth:{
+    type: Boolean,
+    default: false
+  }
 }, { timestamps: true });
 
 studentSchema.pre('save',async function (next) {
