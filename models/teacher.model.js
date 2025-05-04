@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
 const Schema = mongoose.Schema;
+const config = require('../config/config.js');
 
 // Define the teacher schema
 const teacherSchema = new mongoose.Schema(
